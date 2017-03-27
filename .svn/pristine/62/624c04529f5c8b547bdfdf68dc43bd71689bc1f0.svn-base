@@ -1,0 +1,12 @@
+
+<div class="footer">
+    <div class="container">
+        <div class="lf"><img src="__IMG__/f_logo.jpg" /></div>
+        <div class="rt">
+            <div class="rttop">
+                <a href="{:url('Help/abouthelp',array('article_id'=>'index'),'html')}">关于喵阅读</a>|<a href="{:url('Help/abouthelp',array('article_id'=>'lxwm'),'html')}">联系我们</a>|<a href="{:url('Help/abouthelp',array('article_id'=>'yhxy'),'html')}">用户协议</a>|<a href="{:url('Help/abouthelp',array('article_id'=>'tgsm'),'html')}">投稿说明</a>|<a href="{:url('Help/index','','html')}">帮助中心</a>|<a href="{:url('Help/abouthelp',array('article_id'=>'bqsm'),'html')}">版权声明</a>|<a href="{:url('Help/abouthelp',array('article_id'=>'kefu'),'html')}">客服中心</a>|<a href="{:url('Feedback/index','','html')}">反馈留言</a> </div>
+            <div class="rtbom"><p>喵阅读本站所有小说作品、书评，均由用户创建并上传，与本站立场无关，本站作为网络服务提供者仅为服务对提供信息存储空间，本站不改变所有作品和书评，也不对其进行编辑修改等操作。红薯网一贯提倡和支持作品的原创性，为维护作品原创作者的权益，打击盗版、剽窃、抄袭等违法和不道德行为，谨请用户如发现作品有侵权行为请及时与红薯网联系，经查实，立即删除，并保留追究当事人法律责任的权利。</p></div>
+        </div>
+          <p class="copyright">Copyright (C) 2008-2015 http://www.hongshu.com All rights reserved 版权所有 上海朗阅信息科技有限公司</p>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+Trying to change property 'svn:ignore'
+but the property has already been locally changed to a different value.
+Local property value:
+.buildpath
+.project
+.settings
+.idea
+
+Incoming property value:
+.buildpath
+.idea
+.project
+.settings
+

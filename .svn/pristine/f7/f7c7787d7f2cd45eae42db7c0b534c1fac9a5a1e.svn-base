@@ -1,0 +1,176 @@
+<?php
+namespace Client\Controller;
+
+use Client\Common\Controller;
+
+class EmptyController extends Controller {
+
+    public function indexAction() {
+        if (IS_POST || I('token')) {
+            //这一部分是用来处理老代码中的new2old_login部分的。
+            $this->check_user_login();
+            $token = I('token');
+            if (empty($token)) {
+                $this->error('参数错误，请重新登录！', url('User/login'));
+            }
+            $token = str_replace(' ', '+', $token);
+            $tmp = explode("\t", uc_authcode($token, 'DECODE', C('SECURE_CODE')));
+            $username = trim($tmp[0]);
+            $password = trim($tmp[1]);
+            if (empty($password) || empty($username)) {
+                $this->error('系统超时，请重新登录！', url('User/login'));
+            }
+
+            if (session('islogin') && session('username') == $username) {
+                //alert('loading...',$M_forward,3);
+                $this->_doLogin();
+                exit;
+            } else {
+                $cookietime = I('cookietime/d');
+                $cookietime = 60*60*24*30;
+
+                $userobj = new \Client\Model\UserModel();
+                $weuserinfo = $userobj->getUser($username);
+
+                if (is_array($weuserinfo) && $weuserinfo['is_deleted'] != 1 && $weuserinfo['is_locked'] != 1) {
+                    //$loginpassword=$userobj->we_password($password,$weuserinfo['salt']);
+                    if ($password == $weuserinfo['password']) {
+                        //设置本站登陆状态
+                        $result = $userobj->login($weuserinfo['uid'], $cookietime);
+                        if($result === false){
+                            exit($userobj->getError());
+                        }
+                        $this->_doLogin($weuserinfo);
+                        //alert('...',$M_forward,3);
+                        exit;
+                    } else {
+                        $this->error('用户名或者密码错误！', url('User/login'));
+                        exit;
+                    }
+                } else {
+                    //js_alert('用户名或密码错误!','login.php?forward='.$M_forward);
+                    exit('账号不存在或被封禁,请联系客服!');
+                    //exit;
+                }
+            }
+        } else {
+            if (canTest()) {
+                echo 'module:' . MODULE_NAME . '<br />';
+                echo 'controler:' . CONTROLLER_NAME . '<br />';
+                echo 'action:' . ACTION_NAME . '<br />';
+                $e = error_get_last();
+                pre($e);
+                pre(debug_backtrace());
+                pre($_SERVER);
+                exit;
+            } else {
+                _exit();
+            }
+        }
+    }
+
+    private function _doLogin($info = array()){
+        $uid = session('uid');
+        if(!$uid && isset($info['uid'])){
+            $uid = $info['uid'];
+        }
+        if(!$uid){
+            return false;
+        }
+        if(CLIENT_NAME==='ios'||CLIENT_NAME==='android'){
+            $userModel = new \Client\Model\UserModel();
+            if(!$info){
+                $info = $userModel->find($uid);
+            }
+            if(!$info){
+                exit('对不起，您的帐户不存在！');
+            }
+            if ($info['is_deleted'] || $info['is_locked']){
+                exit('对不起，您的帐号已经被封禁！');
+            }
+            $author = $userModel->getAuthorByUid($info['uid']);
+            if($author){
+                $info['isauthor'] = 1;
+            }else{
+                $info['isauthor'] = 0;
+            }
+
+            $authCode = $userModel->generate_authcode($info);
+            $domain = 'http://'.C('CLIENT.'.CLIENT_NAME.'.domain');
+            $this->M_forward = urldecode($this->M_forward);
+            $this->M_forward = $domain.'/usercenter.do';
+            if($this->M_forward){
+                if(strpos($this->M_forward, '?')){
+                    $this->M_forward.='&';
+                } else {
+                    $this->M_forward.='?';
+                }
+                $this->M_forward.='P30='.$authCode;
+            }
+            $result = array(
+                'P30' => $authCode,
+                'fu' => $this->M_forward,
+                'avatar' => getUserFaceUrl($info['uid'])
+            );
+            $arr = array('uid', 'username', 'nickname', 'viplevel', 'groupid', 'isauthor','groupname', 'money');
+
+            foreach($arr as $key){
+                $result[$key] = $info[$key];
+            }
+            //\Think\Log::write(print_r(array('_GET:'=>$_GET, '_POST:'=>$_POST, 'result:'=>$result), 1), 'INFO', '', LOG_PATH . 'THIRD_LOGIN_INFO');
+            if(CLIENT_NAME === 'android'){
+                $do_command_str = android_output_docommand('saveP30', $result);
+                $open_url = android_output_docommand('open_child_webview', array('Url' => $this->M_forward));
+                //$open_url = android_output_docommand('close_child_webview');
+                header("Content-type:text/html;charset=utf-8");
+                ?>
+                                正在登陆中...
+        <script language="javascript">
+            window.HongshuJs.do_command('<?php echo $do_command_str; ?>');
+            window.setTimeout(function () {
+                window.HongshuJs.do_command('<?php echo $open_url; ?>');
+                //window.location = "<?php echo $M_forward; ?>";
+            }, 1000);
+        </script>
+<?php
+            } else {
+            header("Content-type:text/html;charset=utf-8");
+            ?>
+            登陆中...
+            <script language="javascript">
+            var params = '{"P30":"<?php echo $authCode;?>","username":"<?php echo $info['username']?>","fu":"<?php echo $this->M_forward;?>"}';
+            window.location.href="objc://saveP30//"+params;
+            </script>
+            <?php
+
+            }
+        } else {
+            //\Think\Log::write(print_r(array('_GET:'=>$_GET, '_POST:'=>$_POST, 'info:'=>$info), 1), 'INFO', '', LOG_PATH . 'M_THIRD_LOGIN_INFO');
+            //http%3A%2F%2Fm.client.hongshu.com%2FUser%2FChangeAccount.do
+            if(strpos($this->M_forward, '%2F')) {
+                $this->M_forward = urldecode($this->M_forward);
+            }
+            $m = strtolower($this->M_forward);
+            if(instr($m, strtolower(url('User/login'))) || instr($m, strtolower(url('User/ChangeAccount')))){
+                $this->M_forward = url('User/index');
+            }
+            header("Location: " . $this->M_forward);
+        }
+    }
+}
+
+function instr($str1, $str2){
+    $s1 = strlen($str1);
+    $s2 = strlen($str2);
+    if($s1==$s2 && $str1==$str2){
+        return true;
+    }
+    if($s1>$s2){
+        $m1 = $str1;
+        $m2 = $str2;
+    } else {
+        $m1 = $str2;
+        $m2 = $str1;
+    }
+    return strpos($m1, $m2)!==false;
+}

@@ -1,0 +1,444 @@
+<?php
+/**
+ * 模块: 客户端
+ *
+ * 功能: 首页
+ *
+ * @copyright Copyright (c) 2015 – www.hongshu.com
+ * @author: guonong
+ * @version: $Id$
+ */
+
+namespace Client\Controller;
+
+use Client\Common\Controller;
+
+class IndexController extends Controller {
+    /**
+     * 首页
+     *
+     */
+    public function _index() {
+        $this->pageTitle = "首页";
+        $sex_flag = I("get.sex_flag", "", "trim");
+
+        $this->assign("sex_flag", $sex_flag);
+        $this->display("Channel:" . $sex_flag);
+    }
+
+    /**
+     * 触屏站首页
+     */
+    public function _index_html5() {
+        $sex_flag = I("get.sex_flag", "", "trim");
+        if (!$sex_flag) {
+            $sex_flag = C('DEFAULT_SEX');
+        }
+        if ($sex_flag) {
+            $this->assign('sex_flag', $sex_flag);
+        }
+        $this->display();
+    }
+
+    public function _index_wap() {
+        $this->_index_html5();
+    }
+
+    /**
+     * 元气萌首页
+     */
+    public function _index_yqm() {
+
+        $this->display('indexyqm');
+    }
+
+    /**
+     * pc站首页
+     */
+    public function _index_www(){
+        $this->display();
+    }
+    /**
+     * 喵阅读首页
+     */
+    public function _index_myd(){
+        $this->pageTitle = '首页';
+        //最新更新
+        $updateBooks_all = array();
+        //vip更新
+        $updateBooks_vip = array();
+        //免费更新
+        $updateBooks_free = array();
+        //免费榜单最新更新
+        $bookModel = new \Client\Model\BookModel();
+        $cacheModel = new \HS\MemcacheRedis();
+
+        $updateBooks = $bookModel->getUpdateBooks('index_last_booklist');
+
+
+        if(isset($updateBooks['all'])){
+            $updateBooks_all = $updateBooks['all'];
+        }
+        if(isset($updateBooks['vip'])){
+            $updateBooks_vip = $updateBooks['vip'];
+        }
+        if(isset($updateBooks['free'])){
+            $updateBooks_free = $updateBooks['free'];
+        }
+        //热度精选
+//        $index_jingxuan = $bookModel->getHotBooks();
+        /**
+         * 对应实时榜单时，数据必须具有时事性
+         * $index_last_booklist
+         */
+        /**
+         * 里面是html静态块(不是取自词典加前缀_bang)
+         * $static_index_banner
+         */
+        $static_index_lxkefu = $cacheModel->get('_bangstatic_index_lxkefu');
+        $static_index_banner = $cacheModel->get('_bangstatic_index_banner');
+        $class_nv_qianglirecom = $cacheModel->get('_bangclass_nv_qianglirecom');
+        //热度精选
+        $index_jingxuan = $cacheModel->get('_bangindex_jingxuan');
+        //首页轮换推荐index_exrecom
+        $index_exrecom = $cacheModel->get('_bangindex_exrecom');
+        //免费榜
+        $freeBooks = $cacheModel->get('_bangindex_free');
+        //完结榜（index_wanben）
+        $finishBooks = $cacheModel->get('_bangindex_wanjiebang');
+        //大神专区
+        $index_dashen = $cacheModel->get('_bangindex_dashen');
+        //免费推荐
+        $index_freerecom = $cacheModel->get('_bangindex_freerecom');
+        //友情链接
+        $friendUrl = $cacheModel->get('_bangstatic_index_link');
+        //顶部文字推荐
+        $index_recom1 = $cacheModel->get('_bangindex_recom1');
+        $index_recom2 = $cacheModel->get('_bangindex_recom2');
+        $index_recom3 = $cacheModel->get('_bangindex_recom3');
+        //公告
+        $static_index_gonggao = $cacheModel->get('_bangstatic_index_gonggao');
+        //点击榜
+        $clicklist = array();
+        $clicklist['day'] = $bookModel->getHitRank('nan', 'week');
+        $clicklist['week'] = $bookModel->getHitRank('nan', 'month');
+        $clicklist['month'] = $bookModel->getHitRank('nan', 'total');
+        foreach ($clicklist as $ckey=>$cval){
+            $clicklist[$ckey] = array_slice($cval, 0,10);
+        }
+        //订阅榜
+        $orderlist = array();
+        $orderlist['day'] = $bookModel->getSaleRank('nan', 'total');
+        $orderlist['week'] = $bookModel->getSaleRank('nan', 'week');
+        $orderlist['month'] = $bookModel->getSaleRank('nan', 'month');
+        foreach ($orderlist as $okey => $oval){
+            $orderlist[$okey] = array_slice($oval, 0,10);
+        }
+        /**
+         * 前端固定的更新时间字段是lastupdatetime
+         * 数据库里面的最新更新的时间字段是last_updatetime
+         * VIP章节最新更新的时间是last_vipupdatetime
+         * 为了不破坏前端的固定时间字段
+         * 我在这里为两个榜单新增加了一个字段
+         */
+        $index_last_booklist = $cacheModel->get('index_last_booklist');
+        foreach ($index_last_booklist['last_nvbooklist'] as &$val){
+            $val = $bookModel->getBook($val['bid']);
+            $val['lastupdatetime'] = max($val['last_vipupdatetime'], $val['last_updatetime']);
+        }
+        foreach ($index_last_booklist['last_vipnvbooklist'] as &$val){
+            $val = $bookModel->getBook($val['bid']);
+            $val['lastupdatetime'] = max($val['last_vipupdatetime'], $val['last_updatetime']);
+        }
+        $list = array(
+            'orderlist' => $orderlist,
+            'clicklist' => $clicklist,
+            'static_index_lxkefu' => $static_index_lxkefu['booklists'],
+            'static_index_gonggao' => $static_index_gonggao['booklists'],
+            'index_last_new' => $index_last_booklist['last_nvbooklist'],
+            'index_last_vip' => $index_last_booklist['last_vipnvbooklist'],
+            'static_index_banner' => $static_index_banner['booklists'],
+            'index_recom3' => array_slice($index_recom3['booklists'],0,5),
+            'index_recom2' => array_slice($index_recom2['booklists'], 0,5),
+            'index_recom1' => array_slice($index_recom1['booklists'],0,5),
+            'index_freerecom' => $index_freerecom['booklists'],
+            'index_link' => $friendUrl['booklists'],
+            'index_jingxuan' => array_slice($index_jingxuan['booklists'],0,8),
+            'class_nv_qianglirecom' => array_slice($class_nv_qianglirecom['booklists'],0,8),
+            'index_free' => array_slice($freeBooks['booklists'],0,10),
+            'index_dashen' => array_slice($index_dashen['booklists'],0,6),
+            'index_wanjiebang' => array_slice($finishBooks['booklists'],0,10),
+            'index_exrecom' => array_slice($index_exrecom['booklists'],0,5),
+//            'updatebooks_all' => $updateBooks_all,
+//            'updatebooks_vip' => $updateBooks_vip,
+//            'updatebooks_free' => $updateBooks_free,
+        );
+        $this->assign($list);
+        $this->display();
+    }
+    /**
+     * 客户端侧边栏
+     */
+    public function sideAction() {
+        $this->check_user_login();
+        $this->display();
+    }
+
+    /**
+     * 清除缓存
+     */
+    public function clearCacheAction() {
+        $this->check_user_login();
+        if (function_exists('cantest') && canTest()) {
+            clearcache();
+        } else {
+            _exit();
+        }
+    }
+
+    /**
+     * 获取缓存REDIS中的值
+     */
+    public function getCacheAction() {
+        $this->check_user_login();
+        if (function_exists('cantest') && canTest()) {
+            $key = I('key', '', 'trim');
+            //static_android_ad_nv
+            $type = I('type', 'memcache', 'trim,strtolower');
+            if ($type == 'memcache') {
+                $cache = new \Think\Cache\Driver\Memcache();
+            } else {
+                $cache = new \Think\Cache\Driver\Redis();
+            }
+            echo '<textarea style="width:100%;height:500px;">' . print_r($cache->get($key), 1) . '</textarea>';
+        }
+    }
+
+    public function getConfigAction() {
+        $this->check_user_login();
+        $result = false;
+        if (canTest()) {
+            $key = I('key', '', 'trim');
+            if ($key) {
+                $result = C($key);
+            }
+            dump($result);
+        } else {
+            _exit();
+        }
+    }
+
+    public function getUserAction() {
+        $this->check_user_login();
+        if (canTest()) {
+            $uid = I('uid', 0, 'intval');
+            $uModel = D('User');
+            $userinfo = $uModel->find($uid);
+            if ($userinfo) {
+                pre($userinfo);
+            } else if ($userinfo === false) {
+                _exit($uModel->getError());
+            } else {
+                exit('not found!');
+            }
+        } else {
+            _exit();
+        }
+    }
+
+    public function checkSearchWordAction() {
+        $keyword = I('keyword');
+        $cache = new \Think\Cache\Driver\Redis();
+        $words = $cache->get("_badwordsearchbadword");
+        $words = explode("|", $words);
+        echo $keyword . '<hr>';
+        foreach ($words as $word) {
+            if ($word) {
+                $matches = false;
+                $mword = '/' . preg_replace('@\{(\d+)\}@i', '.{0,\1}', trim($word)) . '/i';
+                preg_match_all($mword, $keyword, $matches);
+                if ($matches[0]) {
+                    echo $word;
+                    echo ' matched!<br />';
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取指定客户端的热搜词
+     */
+    public function getHotKeywordsAction() {
+
+        if (!C('CACHE_PREFIX')) {
+            C('CACHE_PREFIX', 'txtxiaoshuo');
+        }
+        $redis = new \Think\Cache\Driver\Redis();
+        $client_name = I('client', '', 'trim');
+        if (!$client_name || !in_array($client_name, array('ios', 'android', 'html5', 'other', 'yqm', 'all'))) {
+            //未知的搜索来源
+            $client_name = CLIENT_NAME;
+        }
+
+        $this_month = I('month')? : date('ym');
+        $sex_flag = I('sex_flag');
+        if ($client_name == 'all') {
+            $result = array();
+            foreach (array('ios', 'android', 'html5', 'other', 'yqm', 'all') as $v) {
+                $key = ':otsk:' . $v . ':' . $this_month . ':' . $sex_flag;
+                $result[$v] = $redis->zRevRange($key, 0, -1);
+                if ($result[$v]) {
+                    foreach ($result[$v] as $k => &$vv) {
+                        $vv = array(
+                            'keyword' => $vv,
+                            'times'   => $redis->ZSCORE($key, $vv)
+                        );
+                    }
+                }
+            }
+        } else {
+            $key = ':otsk:' . $client_name . ':' . $this_month . ':' . $sex_flag;
+            $result = $redis->zRevRange($key, 0, -1);
+        }
+        echo $key . "<br/>";
+        echo $client_name;
+        pre($result);
+        exit;
+    }
+
+    /**
+     * 指检查订购记录与订阅表之间的对应关系
+     */
+    public function batchCheckAction() {
+        $uid = I('uid', 0, 'intval');
+        $bid = I('bid', 0, 'intval');
+        $uModel = M('ReadUser');
+        $bModel = M('Book');
+        $uTotal = I('uTotal', 0, 'intval');
+        $begin = time();
+        //if(!$uTotal) {
+        $uTotal = $uModel->where('uid>=' . $uid)->count();
+        //}
+        $bTotal = I('bTotal', 0, 'intval');
+        if (!$bTotal) {
+            $bTotal = $bModel->count();
+        }
+
+        $client1 = new \Yar_Client(C('RPCURL', NULL, 'http://interface.hongshutest.com/yar') . "/checksalelogs.php");
+
+        $client2 = new \Yar_Client(C('RPCURL', NULL, 'http://interface.hongshutest.com/yar') . "/dingyuechapter.php");
+
+        //没有指定UID则从数据库里找一个最小的UID出来
+        $user = $uModel->order('uid ASC')->where('uid>=' . $uid)->find();
+        if ($user === false) {
+            echo 'not found';
+            exit($uModel->getError());
+        }
+        if (!$user) {
+            //没有合适的用户了，系统结束
+            exit('successed!');
+        }
+        $uid = $user['uid'];
+        //小说每个人每次批量处理500条
+        $blist = $bModel->where('bid>' . $bid)->limit(500)->select();
+        if ($blist) {
+            foreach ($blist as $book) {
+                $bid = $book['bid'];
+                $result1 = $client1->chUserAllbyMysql($book['bid'], $user['uid']);       //数据库查询的结果
+                $result2 = $client1->checkUserAll($book['bid'], $user['uid'], 'ALL');           //JSON文件中的结果
+                if ($result1 == 'N') {
+                    $result1 = array();
+                }
+                if ($result2 == 'N') {
+                    $result2 = array();
+                }
+                if ($result1 || $result2) {
+                    echo 'UID:' . $uid . '，';
+                    echo 'BID:' . $bid . '<br>';
+                    $match1 = array_diff_key($result1, $result2);
+                    $match2 = array_diff_key($result2, $result1);
+                    //pre($result1);
+                    //pre($result2);exit;
+                    if ($match1 || $match2) {
+                        if ($match1) {
+                            echo 'JSON记录不符！<br />';
+                            //JSON中的订购关系不存在
+                            $result = $client1->chSaveAll($bid, $uid, $match1);
+                            pre($match1);
+                            if ($result != 'Y') {
+                                //写JSON时出错
+                                pre($match1);
+                                exit;
+                            }
+                        }
+                        if ($match2) {
+                            echo '数据库记录不符！<br />';
+                            pre($match2);
+                            //数据库中的订购关系不存在
+                            foreach ($match2 as &$v) {
+                                $v['truesaleprice'] = $v['saleprice'];
+                                $v['moneytype'] = 1;
+                            }
+                            $result = $client2->add_multi_salelogs($bid, $uid, 99, $match2);
+                            if ($result != 'Y') {
+                                pre($match2);
+                                exit;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!$blist || count($blist) < 100) {
+            $uid++;
+            $bid = 0;
+        }
+        $time = time() - $begin;
+        $total = $uTotal * $bTotal;
+        $remain = $total / 500 * $time;
+        $this->success('大约还需要' . $remain . '秒。还有大约' . $total . '条数据。本次500条数据花费' . $time . '秒。<br />继续吧，不知道还得多少<br />UID:' . $uid . '(' . $uTotal . '), BID:' . $bid . '(' . $bTotal . ')', U('', array('uid'    => $uid,
+            'bid'    => $bid, 'bTotal' => $bTotal, 'uTotal' => $uTotal)), 1);
+    }
+
+}
+
+/**
+ * 清除本机上的ThinkPHP缓存
+ *
+ */
+function clearCache() {
+    $lists[] = 'Cache';
+    $lists[] = 'Temp';
+    $lists[] = 'Data';
+
+    foreach ($lists as $dir) {
+        deldir(RUNTIME_PATH . $dir);
+    }
+    $files = array(
+        'common~runtime.php'
+    );
+    foreach ($files as $k) {
+        unlink(RUNTIME_PATH . '/' . $k);
+    }
+}
+
+/**
+ * 删除指定目录下的所有文件
+ * @param string $dir
+ * @param bolean $rescure 是否递归删除
+ */
+function deldir($dir, $rescure = true) {
+    $dh = opendir($dir);
+    while ($file = readdir($dh)) {
+        if ($file != "." && $file != "..") {
+            $fullpath = $dir . "/" . $file;
+            echo $fullpath . '<br />';
+            if (!is_dir($fullpath)) {
+                unlink($fullpath);
+            } else if ($rescure) {
+                deldir($fullpath);
+            }
+        }
+    }
+}

@@ -1,0 +1,244 @@
+<extend name="Common/base" />
+<block name="header">
+<include file="Common/head1" />
+</block>
+<block name="body">
+<!--公告开始-->
+<Hongshu:bangdan name="static_g_indexlaba">
+{$row}
+</Hongshu:bangdan>
+<!--公告结束-->
+<!--主编推荐开始-->
+<div class="unit">
+    <div class="tit"><h1>主编推荐</h1></div>
+    <div class="frame clearfix">
+        <ul>
+        <Hongshu:bangdan name="android_nan_zhubian" items="2">
+        	<a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">
+            <li onClick="hg_gotoUrl('{:url('Book/view',array('bid'=>$row['bid']),'html')}');" class="clearfix">
+                <div><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}"><h1 class="hidden shidden">{$row.catename}<span class="szz">{$row.author}</span><span class="slx">{$row.smallsubclassname}</span></h1></a></h1>
+                 <p>{$row.intro}</p></div>
+            </li></a>
+        </Hongshu:bangdan>
+        </ul>
+    </div>
+</div>
+<!--主编推荐结束-->
+<!--火热推荐开始-->
+<div class="unit"> 
+    <div class="tit borderbom"><h1>火热推荐</h1></div>
+    <div class="frame3">
+        <ul>
+        <Hongshu:bangdan name="android_nan_huore" items="3">
+        	<a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">
+            <li onClick="hg_gotoUrl('{:url('Book/view',array('bid'=>$row['bid']),'html')}');">
+                <a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">{$row.catename}</a><span class="zzm">{$row.author}</span><span class="tag">{$row.smallsubclassname}</span>
+            </li></a>
+        </Hongshu:bangdan>
+        </ul>
+    </div>
+</div>
+<!--火热推荐结束-->
+<!--今日免费开始-->
+<div class="unit">
+    <div class="tit borderbom"><h1>本期免费</h1><span class="cgray mlf10">还剩</span><span class="cred mlf10" id="timer"></span><a href="{:url('Channel/free',array('sex_flag'=>'nan'),'html')}" class="more">更多></a></div>
+    <div class="frame3">
+        <ul id="free1">
+        </ul>
+    </div>
+</div>
+<!--今日免费结束-->
+<!--潜力推荐开始-->
+<div class="unit">
+    <div class="tit borderbom"><h1>潜力推荐</h1></div>
+    <div class="frame3 frame03">
+        <ul>
+        <Hongshu:bangdan name="android_nan_qianli" items="6">
+        	<a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">
+            <li onClick="hg_gotoUrl('{:url('Book/view',array('bid'=>$row['bid']),'html')}');">
+               <a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">{$row.catename}</a><span class="zzm">{$row.smallsubclassname}</span><span class="tag">{$row.alllast_updatetime}</span>
+            </li></a>
+        </Hongshu:bangdan>
+        </ul>
+    </div>
+</div>
+<!--潜力推荐结束-->
+<!--标签开始-->
+<div class="unit ">
+    <div class="frame4  clearfix">
+        <ul>
+        <foreach name="category" item="row">
+            <li class="tag3" onClick="hg_gotoUrl('{:url('Channel/search',array('classid'=>$row['classid'],'sex_flag'=>'nan'),'html')}')"><a href="{:url('Channel/search',array('classid'=>$row['classid'],'sex_flag'=>'nan'),'html')}">{$row.title}</a></li>
+        </foreach>
+        </ul>
+    </div>
+</div>
+<!--标签结束-->
+<!--新书上架开始-->
+<div class="unit">
+    <div class="tit borderbom"><h1>新书上架</h1></div>
+    <div class="frame3 frame03">
+        <ul>
+        <Hongshu:bangdan name="android_nan_xinshu" items="9">
+            <li onClick="hg_gotoUrl('{:url('Book/view',array('bid'=>$row['bid']),'html')}');">
+                <a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}">{$row.catename}</a><span class="zzm">{$row.smallsubclassname}</span><span class="tag">{$row.alllast_updatetime}</span>
+            </li>
+        </Hongshu:bangdan>
+        </ul>
+    </div>
+
+</div>
+<!--新书上架结束-->
+<!--新书和免费开始-->
+<div class="unit">
+    <div class="frame14 twobk clearfix">
+        <ul>
+            <li onClick="hg_gotoUrl('{:url('Channel/xinshu',array('sex_flag'=>'nan'),'html')}');"><a href="{:url('Channel/xinshu',array('sex_flag'=>'nan'),'html')}"><h2 class="cgreen">男频新书</h2></a><p>最新小说免费看</p></li>
+            <li onClick="hg_gotoUrl('{:url('Channel/tejia',array('sex_flag'=>'nan'),'html')}');"><a href="{:url('Channel/tejia',array('sex_flag'=>'nan'),'html')}"><h2 class="cyellow">天天特价</h2></a><p>好书5折起</p></li>
+        </ul>
+    </div>
+</div>
+<!--新书和免费结束-->
+<!--畅销榜开始-->
+<div class="unit">
+    <div class="tit borderbom"><h1>男生人气榜</h1></div>
+    <div class="frame3">
+        <ul id="lists">
+        </ul>
+    </div>
+</div>
+<!--畅销榜结束-->
+<div class="unit">
+    <div class="like mbom40"> <a href="javascript:change_like('nv', '__ROOT__/nv.html');"  class="flrt" ><span class="ic_set  fllf" ><img src="__IMG__/ic_set.png" /></span>我喜欢看女生小说></a></div>
+</div>
+</block>
+<block name="script">
+<script type="text/javascript">
+var runtimes = 0;
+var freeout = 0;
+function timer(){
+    var time = times-runtimes;
+    var DD=Math.floor(time/(60*60*24));
+    var HH=Math.floor(time/(60*60))%24;
+    var MM=Math.floor(time/60)%60;
+    var SS=Math.floor(time)%60;
+    document.getElementById("timer").innerHTML = "还剩"+ DD + "天" + HH + ":" + MM + ":" + SS;
+    runtimes++;
+    if(times<runtimes){
+        if(freeout) {
+            clearTimeout(freeout);
+            runtimes = 0;
+        }
+        getfreelist();
+    }
+}
+</script>
+<script type="text/html" id="huanyihuan_tpl">
+    {{if bookinfo}}
+    {{each bookinfo as row i}}
+    <a href="{{ {bid:row.bid} | router:'Book/view','html'}}"><li onclick="hg_gotoUrl('{{ {bid:row.bid} | router:'Book/view','html'}}');" class="hidden"><span class="num num{{i+1}}">{{i+1}}</span>{{row.catename}}<span class="zzm">{{row.author}}</span><span class="tag">{{row.classname}}</span></li></a>
+        {{/each}}
+    {{/if}}
+</script>
+<script type="text/html" id="tpl1">
+{{each books as row i}}
+	<a href="{{ {bid:row.bid} | router:'Book/view','html'}}">
+    <li onClick="hg_gotoUrl('{{ {bid:row.bid} | router:'Book/view','html'}}')" class="hidden">{{row.catename}}<span class="zzm">{{row.author}}</span><span class="tag">{{row.classname}}</span>
+    </li></a>
+{{/each}}
+</script>
+<script type="text/javascript">
+        /**控制榜单和广告行为的js**/
+        Do.ready('touchslider', function(){
+            var p2 = 0;
+            var tt = new TouchSlider({
+                id: 'slider1',
+                auto: '0',
+                fx: 'ease-out',
+                direction: 'left',
+                speed: 300,
+                timeout: 4500,
+                client: true,
+                before: function (index) {
+                    var as2 = $('#dot>div');
+                    if ((typeof p2) !== 'undefined') {
+						if(p2<=as2.length && p2>=0){
+							$(as2[p2]).addClass('v3_dot_r').removeClass('v3_cur');
+						}
+                    }
+                    p2 = index;
+					if(p2<=as2.length && p2>=0){
+						$(as2[p2]).addClass('v3_dot_r').addClass('v3_cur');
+					}
+                }
+            });
+            window.addEventListener('load', function() {
+                touchEvent('li');
+            }, false);
+        });
+        function touchstartremove(classname) {
+            $("." + classname).css({"background-image": "none"});
+        }
+        function touchendadd(classname) {
+            $("." + classname).css({"background-image": "url(__IMG__/splitline1.png)"});
+        }
+
+        Do.ready('lazyload', function () {
+            Lazy.Load();
+            document.onscroll = function () {
+                Lazy.Load();
+            };
+        });
+$(document).ready(function () {
+        loadmore();
+    });
+        function loadmore(){
+        var sortby = 'lastweek_salenum';
+        var url = "{:url('Bookajax/search','','do')}";
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            data: {method:'search',sex_flag:'nan',sortby:sortby,order:1,pagesize:10},
+            timeout: 9000,
+            dataType:'jsonp',
+            success: function (data) {
+                Do.ready('template', 'lazyload', function(){
+                    if(data.bookinfo.length>0){
+                        var htmls = template('huanyihuan_tpl',data);
+                        $('#lists').html(htmls);
+                        Lazy.Load();
+                    }else{
+                        Do.ready('functions', function(){
+                            hg_Toast(data.message);
+                        });
+                    }
+                });
+            }
+        });
+   }
+Do.ready('common','template',function(){
+    getfreelist();
+ });
+function getfreelist(){
+     $.ajax({
+        type:'get',
+        url: '{:url("Bookajax/getfreelist",'','do')}',
+        data:{
+            num:3,
+            sex:'nan',
+            bang:'free'
+        },
+        success: function (data){
+            if(data.status==1){
+                var htmls=template('tpl1',data);
+                $('#free1').html(htmls);
+                freeout=setInterval(timer,1000);
+                times=data.end;
+                window.onload=timer();
+            }
+        }
+});
+}
+</script>
+</block>

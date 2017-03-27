@@ -1,0 +1,48 @@
+<include file="Qiandao/head" />
+<body class="bodybg2">
+    <div class="hb2">
+        <div class="hb2headercon"><span><img src="__IMG__/avater.jpg"/></span>
+
+            <h1>红薯阅读</h1></div>
+        <div class="hb2header">
+            <div class="hb2headercon2">
+                <div class="wenzi2">
+                    <p>恭喜，您抢到</p>
+
+                    <p class="red" style="font-size:36px;font-weight: bold;"> {$value}</p>
+
+                    <p style="color:#cb2123;">{:C('SITECONFIG.EMONEY_NAME')}</p>
+                </div>
+				<if condition="$notend">
+					<p style="color:#cb2123;font-size:14px;line-height: 28px;">1.27~1.31新年福利：<br />
+					恭喜您获得一次额外签到机会</p>
+					<div class="hbbom" style="margin:5px 0 30px;"><button class="btn" onclick="qiandao()">再来一次</button></div>
+				</if>
+                <span>{$premsg}</span>
+                <div class="wenzi3" style="padding: 0 0 10px 0;">
+                    <p style="font-size: 14px;line-height: 24px;">银币已塞入您的账户，当月有效</p>
+                    <if condition="$last_read_url">
+                        <p style="font-size: 14px;line-height: 24px;"><a href="{$last_read_url}">使用银币，继续阅读</a></p>
+                        <else />
+                        <p style="font-size: 14px;line-height: 24px;"><a href="{:url('User/index')}">查看我的账户</a></p>
+                    </if>
+                </div>
+                <div class="wenzi3"  >
+                    <img  src="__IMG__/yqk.jpg" style="max-width: 30%;" />
+                    <p style="font-size:12px; font-weight: bold; color: red;">长按二维码关注，下次签到更方便</p>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+<include file="Qiandao/booklist" />
+    <script>
+        function qiandao(){
+            Do.ready('functions', function(){
+                hg_gotoUrl("__MOBDOMAIN__{:url('Qiandao/open', array('_t'=>NOW_TIME), 'do')}");
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<extend name="Common/base" />
+<block name="header">
+    <include file="Common/head1" />
+</block>
+<block name="body">
+    <div class="container"><div class="tit2"><div class="tit2_border"><h1>排行榜</h1></div></div></div>
+    <div class="container clearfix">
+        <div class="allrank clearfix" id="allrank">
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">点击榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="dayclick">日</a><a href="javascript:void(0);" type="week" name="weekclick">周</a><a href="javascript:void(0);" type="month" name="monthclick">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="dayclick">
+                    <foreach name="clicklist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekclick" style="display:none;">
+                    <foreach name="clicklist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthclick" style="display:none;">
+                    <foreach name="clicklist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">订阅榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="dayorder">日</a><a href="javascript:void(0);" type="week" name="weekorder">周</a><a href="javascript:void(0);" type="month" name="monthorder">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="dayorder">
+                    <foreach name="orderlist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekorder" style="display:none;">
+                    <foreach name="orderlist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthorder" style="display:none;">
+                    <foreach name="orderlist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">收藏榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="dayfav">日</a><a href="javascript:void(0);" type="week" name="weekfav">周</a><a href="javascript:void(0);" type="month" name="monthfav">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="dayfav">
+                    <foreach name="favlist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekfav" style="display:none;">
+                    <foreach name="favlist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthfav" style="display:none;">
+                    <foreach name="favlist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">更新榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="dayupdate">日</a><a href="javascript:void(0);" type="week" name="weekupdate">周</a><a href="javascript:void(0);" type="month" name="monthupdate">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="dayupdate">
+                    <foreach name="updatelist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekupdate" style="display:none;">
+                    <foreach name="updatelist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthupdate" style="display:none;">
+                    <foreach name="updatelist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">点赞榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="dayzan">日</a><a href="javascript:void(0);" type="week" name="weekzan">周</a><a href="javascript:void(0);" type="month" name="monthzan">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="dayzan">
+                    <foreach name="zanlist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekzan" style="display:none;">
+                    <foreach name="zanlist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthzan" style="display:none;">
+                    <foreach name="zanlist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+            <div class="rank">
+                <div class="rank_tit">
+                    <div class="rank_tit_word">打赏榜</div>
+                    <div class="rank_tab"><a href="javascript:void(0);" class="active" type="day" name="daydashang">日</a><a href="javascript:void(0);" type="week" name="weekdashang">周</a><a href="javascript:void(0);" type="month" name="monthdashang">月</a></div>
+                </div>
+                <div class="rank_con clearfix" name="daydashang">
+                    <foreach name="dashanglist['day']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="weekdashang" style="display:none;">
+                    <foreach name="dashanglist['week']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row.bid))}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+                <div class="rank_con clearfix" name="monthdashang" style="display:none;">
+                    <foreach name="dashanglist['month']" item="row" key="i">
+                        <if condition="$i eq 0">
+                            <div class="rank_fm ">
+                                <a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" target="_blank"><img src="{$row.cover}" /></a>
+                            </div>
+                            <ul>
+                                <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                        <else/>
+                            <li><span class="num num{$i+1}">{$i+1}</span><a href="{:url('Book/view',array('bid'=>$row['bid']),'html')}" class="ellipsis" target="_blank">{$row.catename}</a></li>
+                            </ul>
+                        </if>
+                    </foreach>
+                    <div class="rmore"><a href="{:url('Channel/search','','do')}">更多</a> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</block>
+<block name="script">
+    <script type="text/javascript">
+        require(['mod/rank'],function(rank){
+            rank.bindbangdan('order','a','div');
+            rank.bindbangdan('click','a','div');
+            rank.bindbangdan('dashang','a','div');
+            rank.bindbangdan('zan','a','div');
+            rank.bindbangdan('fav','a','div');
+            rank.bindbangdan('update','a','div');
+        })
+    </script>
+</block>

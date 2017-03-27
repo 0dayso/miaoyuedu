@@ -1,0 +1,1019 @@
+<?php
+/**
+ * 模块: 客户端
+ *
+ * 功能: 用户
+ *
+ * @copyright Copyright (c) 2015 – www.hongshu.com
+ * @author: dingzi
+ * @version: $Id$
+ */
+
+namespace Client\Controller;
+
+use Client\Common\Controller;
+
+class UserController extends Controller {
+    public function _initialize() {
+        parent::_initialize();
+        if (ACTION_NAME !== 'login' && ACTION_NAME !== 'iflogin' && ACTION_NAME !== 'imgcode') {
+            $this->check_user_login();
+            if ($uid = isLogin()) {
+                $user = session();
+                //计算用户头像
+                $user['userimg'] = getUserFaceUrl($uid, 'big');
+                $this->assign('user', $user);
+            }
+        }
+    }
+
+    /**
+     * 用户中心
+     */
+    public function indexAction() {
+        $this->pageTitle = "个人中心";
+        $uid             = isLogin();
+        if (!$uid) {
+            if(CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');    
+            }else {
+                $this->redirect('User/login', array("fu" => url("User/index", '', 'do')));
+            }
+        }
+        $userinfo = session();
+        if ($uid) {
+            $userinfo['avatar'] = getUserFaceUrl($uid, "large");
+        } else {
+            $userinfo['avatar'] = '';
+        }
+        $userinfo['lastlogin'] = timeDiff(date('Y-m-d H:i:s',$userinfo['lastlogin']));
+        
+        $sex_flag = I("get.sex_flag", "", "trim");
+        $this->assign("sex_flag", $sex_flag);
+        $this->assign("userinfo", $userinfo);
+        $this->display();
+    }
+
+    /**
+     * 登录(展示模板)
+     *
+     */
+    public function loginAction() {
+        //渠道号
+        $_from_sid = I('param.P32',0,'intval');
+        if($_from_sid){
+            //cookie有可能丢失
+            cookie('_from_sid',$_from_sid,array('prefix'=>C('CHANNEL_COOKIE_PREFIX'),'domain'=>C('CHANNEL_COOKIE_DOMAIN')));
+        }
+        //登录方式
+        $type            = I("get.type", "", "trim");
+        $this->pageTitle = "登录";
+        if ($type && $type == "id") {
+            $this->clearCookie();
+            $this->display("loginwithid");
+        } else {
+            if (CLIENT_NAME === 'ios') {
+                $action = I('get.action', '', 'trim');
+                if (!$action) {
+                    $this->display('iflogin');
+                } else {
+                    $this->display();
+                }
+            } else {
+                $this->display();
+            }
+        }
+    }
+    /**
+     * 
+     * ios 1.4.3起将login,loginwithid拆分出来
+     */
+    public function loginwithidAction(){
+        $this->pageTitle = '登录';
+        
+        $this->display();
+    }
+    public function loginformAction(){
+        $this->pageTitle = '登录';
+        $this->clearCookie();
+        
+        $this->display('login');
+    }
+
+    /**
+     * 第三方登录
+     *
+     * @param string $type qq(qq登录)、sina（新浪微博）、wechat(微信)、alipay(支付宝)、baidu(百度)
+     *
+     * @return 无
+     */
+    public function thirdloginAction() {
+        //类型
+        $type            = I('type', '', 'trim');
+        $type            = '/third/' . $type . '/login';
+        $third_login_ary = array(
+            '/third/qq/login',
+            '/third/sina/login',
+            '/third/wechat/login',
+            '/third/baidu/login',
+            '/third/alipay/login'
+        );
+        if (in_array($type, $third_login_ary)) {
+            $url = C('USERDOMAIN') . $type . '.do';
+        } else {
+            _exit();
+        }
+        $this->clearCookie();
+        $openidstr = "";
+        //安卓和IOS的回调
+        if (in_array(CLIENT_NAME, array('ios', 'android'))) {
+            $openid  = I('openid', '', 'trim');
+            $unionid = I('unionid', '', 'trim');
+            if ($type == "/third/wechat/login") {
+                if ($openid) {
+                    $url       = C('TMPL_PARSE_STRING.__USERDOMAIN__') . "/Third/wechatLoginFromAndroid.do";
+                    $openidstr = '<input type="hidden" name="openid" value="' . $openid . '"/>';
+                    $openidstr.= '<input type="hidden" name="unionid" value="' . $unionid . '"/>';
+                } else {
+                    //\Think\Log::write(print_r(array('get:'=>$_GET, 'post:'=>$_POST, 'host:'=>$login_host, 'fu:'=>$this->M_forward), 1), 'INFO', '', LOG_PATH . 'THIRD_WECHAT_LOGIN');
+                    exit('系统错误,获取openid出错,请联系客服');
+                }
+            }
+        }
+        if (empty($this->M_forward) || $this->M_forward == '/') {
+            $this->M_forward = '/';
+        }
+        if (substr($this->M_forward, 0, 4) !== 'http') {
+            $this->M_forward = ROOT_URL . '/' . $this->M_forward;
+        }
+        header("Content-Type: text/html; charset=utf-8");
+        echo '<html><head><title>正在进入第三方登陆</title></head>'
+        //. '<body>'
+        . '<body onload="document.form.submit()">'
+        . '<form name="form" action="' . $url . '" method="post">'
+        . '<input type="hidden" name="fu" value="' . rawurlencode($this->M_forward) . '"/>'
+        . '<input type="hidden" name="cookietime" value="7200"/>'
+        . '<input type="hidden" name="iswap" value="1"/>'
+        . $openidstr
+        //. '<input type="submit">'
+        . '</form></body></html>';
+    }
+
+    /**
+     * 注册第一步表单
+     *
+     */
+    public function registerAction() {
+        $this->pageTitle = "账号注册";
+        //渠道号
+        $_from_sid = I('param.P32',0,'intval');
+        if($_from_sid){
+            cookie('_from_sid',$_from_sid,array('prefix'=>C('CHANNEL_COOKIE_PREFIX'),'domain'=>C('CHANNEL_COOKIE_DOMAIN')));
+        }
+        
+        $this->display();
+    }
+
+    /**
+     * 图片验证码
+     */
+    public function _imgCode() {
+        session('[start]');
+        $imgCodeModel = new \HS\ImgCode();
+        $imgcode      = $imgCodeModel->image2(4, 1, 'png');
+        //元气萌ios存储验证码
+        $key = I('get.key','','trim');
+        if($key){
+            $cacheModel = new \HS\MemcacheRedis();
+            $key = ':imgcode:'.$key;
+            $imgcode = session('imgcode');
+            $cacheModel->setMc($key, $imgcode,900);
+        }
+        echo $imgcode;
+    }
+
+    /**
+     * yqm注册验证码
+     */
+    public function _imgCode_yqm() {
+        session('[start]');
+        $verifyModel            = new \HS\Verify();
+        //有效期
+        $verifyModel->expire    = 300;
+        //指定字符
+        $verifyModel->codeSet   = '0123456789';
+        //验证码位数
+        $verifyModel->length    = 4;
+        //背景
+        $verifyModel->userImgbg = true;
+        $verifyModel->bg        = array(225, 225, 255);
+        //宽
+        $verifyModel->imageW    = 106;
+        //高
+        $verifyModel->imageH    = 42;
+        //字体大小
+        $verifyModel->fontSize  = 25;
+        //噪点
+        //$verifyModel->useNoise = false;
+        $verifyModel->entry();
+    }
+
+    /**
+     * 注册第二步
+      public function registerTwoAction(){
+      $this->pageTitle = "账号注册";
+      //手机号码
+      $mobileId = I('post.mobileId','','intval');
+      if(!$mobileId){
+      $this->error("手机号码缺失");
+      }
+
+      $this->assign("mobileId",$mobileId);
+      $this->display();
+      }
+     */
+    /**
+     * 退出
+     *
+     * @param 无
+     *
+     * @return 退出成功/失败信息
+     */
+    public function logoutAction() {
+        $userModel = new \Client\Model\UserModel();
+        $islogout  = $userModel->doLogout();
+        $sexflag   = cookie('sex_flag');
+        if (!$sexflag) {
+            $sexflag = C("DEFAULT_SEX");
+        }
+        if ($islogout) {
+            if(CLIENT_NAME == 'yqm' || CLIENT_NAME == 'myd' || CLIENT_NAME=='chushou') {
+                $this->success("退出成功", url("Index/index", array(), 'html'));
+            }else{
+                $this->success("退出成功", url("Channel/index", array("sex_flag" => $sexflag), 'html'));
+            }
+        } else {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . $this->M_forward);
+            } else {
+                $this->redirect($this->M_forward, '', 2, '退出失败，请重试');
+            }
+        }
+    }
+
+    /**
+     * 切换账号
+     *
+     */
+    public function ChangeAccountAction() {
+        $this->pageTitle = "切换账号";
+//         $userModel = new \Client\Model\UserModel();
+//         $islogout = $userModel->doLogout();
+        $this->display("login");
+    }
+
+    /**
+     * 修改昵称
+     *
+     */
+    public function changenicknameAction() {
+        $this->pageTitle = "修改昵称";
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/changenickname", array(), 'do')), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/changenickname", array(), 'do')), 'do'), '', 2, '请先登录');
+            }
+        }
+        //判断是否已经修改过昵称
+        $usermap   = array("uid" => $uid);
+        $ischanged = M("user")->where($usermap)->getField("nickallow");
+        if ($ischanged === false) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . $this->M_forward);
+            } else {
+                $this->redirect('Index/index', '', 2, '参数错误');
+            }
+        } else {
+            if ($ischanged == 1) {
+                $this->assign("ischanged", true);
+            } else {
+                $this->assign("ischanged", false);
+            }
+        }
+
+        $this->display();
+    }
+
+    /**
+     * 个人资料
+     */
+    public function personalAction() {
+        $this->pageTitle = "个人资料";
+        $uid = isLogin();
+        if (!$uid             = isLogin()) {
+            if(CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');
+            }elseif (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/personal"))));
+            } else {
+                $this->redirect('User/login', array("fu" => url("User/personal")), 2, '请先登录');
+            }
+            exit;
+        }
+        $usermap = array('uid' => $uid);
+        $user    = M("user")->field('uid,mobile,regdate,ologin,nickallow')->where($usermap)->find();
+        if (is_array($user)) {
+            $user['userimg'] = getUserFaceUrl($uid, 'big');
+            if ((int) $user['nickallow']) {
+                $user['nickallow'] = true; //已修改过
+            } else {
+                $user['nickallow'] = false; //为修改过
+            }
+            $user['regdate'] = date('Y-m-d H:i', $user['regdate']);
+        } else {
+            _exit("参数错误");
+        }
+        //时间戳
+        $timespan = NOW_TIME;
+        $this->assign('timespan', $timespan);
+        $this->assign('user', $user);
+        if ($user['mobile']) {
+            $this->assign("mobile", $user['mobile']);
+        } else {
+            $this->assign("mobile", "您还没有绑定手机");
+        }
+
+        $this->display();
+    }
+
+    /**
+     * 绑定手机号
+     *
+     */
+    public function mobbindAction() {
+        $this->pageTitle = "绑定手机";
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/mobbind")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/mobbind", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+
+        $this->display();
+    }
+
+    /**
+     * 修改密码
+     *
+     */
+    public function changepwdAction() {
+        $this->pageTitle = "修改密码";
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/changepwd")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/changepwd", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+
+        $this->display();
+    }
+
+    /**
+     * 充值记录
+     *
+     */
+    public function paylogsAction() {
+        $this->pageTitle = "充值记录";
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');
+            } elseif (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/paylogs")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/paylogs", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+        $this->display();
+    }
+
+    /**
+     * 消费记录
+     */
+    public function salelogsAction() {
+        $this->pageTitle = "消费记录";
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');
+            } elseif (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/salelogs")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/salelogs", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+
+        //当前年
+        $nowyear  = date('Y');
+        //当前月
+        $nowmonth = date('n');
+        $this->assign('nowyear', $nowyear);
+        $this->assign('nowmonth', $nowmonth);
+        $this->display();
+    }
+
+    /**
+     * 我的书架
+     *
+     */
+    public function shelfAction() {
+        if (CLIENT_NAME == 'yqm') {
+            $this->pageTitle = '我的次元库';
+        } else {
+            $this->pageTitle = "个人书架";
+        }
+        $uid = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');
+            } elseif (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/shelf")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/shelf", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+        //喵阅读需要取书架id
+        if(CLIENT_NAME == 'myd'){
+            $bookModel = new \Client\Model\BookModel();
+            $shelf = $bookModel->getShelfByUid($uid,'category_id, uid, category_name');
+        }
+        
+        $this->display();
+    }
+
+    /**
+     * 用户中心：订阅设置
+     * 单纯展示页面,无参数、返回值
+     */
+    public function setbookingAction() {
+        $this->pageTitle = "订阅设置";
+        //判断登录
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios' && CLIENT_VERSION >= '1.4.3'){
+                doClient('User/login');
+            } elseif (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/setbooking")), 'do'));
+            } else {
+                $this->redirect(url('User/login', array("fu" => url("User/setbooking", array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+//         echo '<p onClick="doChild(\''.url('Guestbook/index').'\')">留言板</p>';
+        
+        $this->display();
+    }
+
+    /**
+     * 忘记密码
+     */
+    public function losepwdAction() {
+        $this->pageTitle = "找回密码";
+
+        $this->display();
+    }
+
+    /**
+     * 签到
+     */
+    public function qiandaoAction() {
+        if (!in_array(CLIENT_NAME, array("ios", "android"))) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . $this->M_forward);
+            } else {
+                _exit("操作不合法！");
+            }
+        }
+        //每月最后一天的11:30以后，每月1号的0:30以前不允许执行以下操作！
+        $day = date('d');
+        $hour = date('H');
+        $minute = date('i');
+        if($day==1 && $hour==0 && $minute<30){
+            _exit('系统繁忙，请稍候再试！');
+        }
+        $begin = $end = 0;
+        mk_time_xiangdui(NOW_TIME, 'thismonth', $begin, $end);
+        if($day == date('d', $end)) {
+            if($hour>=23 && $minute>=30) {
+                _exit('系统繁忙，请稍候再试！');
+            }
+        }
+        $this->pageTitle = "签到";
+        //获取设备信息
+        $uuid            = $this->deviceInfo['UUID'];
+        if (!$uuid || is_null($uuid)) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . $this->M_forward);
+            } else {
+                $this->redirect(url('User/login', array(), 'do'), '', 2, '请先登录');
+            }
+        }
+        $thisday = date("ymd");
+        //SELECT egold FROM wis_android_qiandao WHERE uuid='{$uuid}' AND qiandao_day={$thisday}
+        $where   = array(
+            "uuid"        => $uuid,
+            "qiandao_day" => $thisday,
+        );
+        //12月28日，安卓增加uid
+        if(CLIENT_NAME == 'android'){
+            $uid = isLogin();
+            if(!$uid){
+                $this->redirect(url('User/login', array(), 'do'), '', 2, '请先登录');
+            }
+            $where = array(
+                'qiandao_day' => $thisday,
+                array(
+                    'uuid' => $uuid,
+                    'uid' => $uid,
+                    '_logic' => 'or',
+                ),
+            );
+        }
+        if (CLIENT_NAME == "ios") {
+            $tabName = "ios_qiandao";
+        } else if (CLIENT_NAME == "android") {
+            $tabName = "android_qiandao";
+        }
+        //判断签到和领奖
+        $is_need_linjiang = 0;
+        $linjianginfo     = M($tabName)->where($where)->getField("egold");
+        if (!$linjianginfo) {
+            $is_need_qiandao = true;
+        } else {
+            if ($linjianginfo <= 0) {
+                $is_need_linjiang ++;
+            }
+        }
+        //格式化日期
+        $star_time = $end_time = '';
+        mk_time_xiangdui(NOW_TIME, 'thismonth', $star_time, $end_time);
+        $tmp = $star_time;
+        $days = array();
+        for ($i = 31; $i > 0; $i--) {
+            $key = date("ymd", $tmp);
+            if ($key > date("ymd", $end_time)) {
+                break;
+            }
+            $days[$key]['day'] = substr(date("m-d", $tmp), 3);
+            $tmp += 86400;
+        }
+        $starday     = date("ymd", $star_time);
+        //TODO
+        //当月已签到的天数SELECT egold,linjiang_day,qiandao_day FROM wis_android_qiandao WHERE uuid='{$uuid}' AND qiandao_day>={$starday}
+        $map         = array(
+            "uuid"        => $uuid,
+            "qiandao_day" => array("egt", $starday),
+        );
+        $qiandaodays = M($tabName)->field("egold,linjiang_day,qiandao_day")->where($map)->select();
+        foreach ($qiandaodays as $vo) {
+            $days[$vo['qiandao_day']]['is_qiandao'] = 1;
+        }
+
+        $this->assign("uuid", $uuid);
+        $this->assign("is_need_lingjiang", $is_need_linjiang);
+        $this->assign("isqiandao", $is_need_qiandao);
+        $this->assign("qiandaodays", $days);
+        $this->display();
+    }
+
+    /**
+     * 领奖
+     */
+    public function lingjiangAction() {
+        //每月最后一天的11:30以后，每月1号的0:30以前不允许执行以下操作！
+        $day = date('d');
+        $hour = date('H');
+        $minute = date('i');
+        if($day==1 && $hour==0 && $minute<30){
+            _exit('系统繁忙，请稍候再试！');
+        }
+        $begin = $end = 0;
+        mk_time_xiangdui(NOW_TIME, 'thismonth', $begin, $end);
+        if($day == date('d', $end)) {
+            if($hour>=23 && $minute>=30) {
+                _exit('系统繁忙，请稍候再试！');
+            }
+        }
+        $this->pageTitle = '抽奖';
+        //判断登录
+        $uid             = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . url('User/login', array("fu" => url("User/lingjiang"))));
+            } else {
+                $this->redirect('User/login', array("fu" => url("User/lingjiang")), 2, '请先登录');
+            }
+        }
+        //uuid
+        $uuid = $this->deviceInfo['UUID'];
+        if (!$uuid || is_null($uuid)) {
+            if (CLIENT_NAME == 'ios') {
+                header("Location:" . $this->M_forward);
+                exit;
+            } else {
+                $this->redirect($this->M_forward, '', 2, '抱歉，服务器繁忙，请稍后再来');
+            }
+        }
+        $thisday = date("ymd");
+        //判断当天是否领奖,SELECT egold,id FROM wis_android_qiandao WHERE uuid='{$uuid}' AND qiandao_day={$thisday}", 'id'
+        $where   = array(
+            "uuid"        => $uuid,
+            "qiandao_day" => $thisday,
+        );
+        //12.28安卓增加uid
+        if(CLIENT_NAME == 'android'){
+            $uid = isLogin();
+            if(!$uid){
+                $this->redirect(url('User/login', array(), 'do'), '', 2, '请先登录');
+            }
+            $where = array(
+                'qiandao_day' => $thisday,
+                array(
+                    'uuid' => $uuid,
+                    'uid' => $uid,
+                    '_logic' => 'or',
+                ),
+            );
+        }
+        if (CLIENT_NAME == "ios") {
+            $tabName = "ios_qiandao";
+        } else {
+            $tabName = "android_qiandao";
+        }
+        $lingjianginfo = M($tabName)->field("id,egold")->where($where)->find();
+        if (!$lingjianginfo) {
+            //INSERT INTO wis_android_qiandao set uuid='{$uuid}',qiandao_day={$thisday}
+            $data          = array(
+                "uuid"        => $uuid,
+                "qiandao_day" => $thisday,
+            );
+            $id            = M($tabName)->add($data);
+            $lingjianginfo = array('egold' => 0, 'id' => $id);
+        }
+        $is_need_linjiang = 0;
+        foreach ($lingjianginfo as $row) {
+            if ($row['egold'] <= 0) {
+                $id = $row['id'];
+                $is_need_linjiang ++;
+            }
+        }
+
+        $this->assign("uuid", $uuid);
+        $this->assign("is_need_lingjiang", $is_need_linjiang);
+        $this->assign("lingjianginfo", $lingjianginfo);
+        $this->assign("id", $lingjianginfo['id']);
+        $this->display();
+    }
+
+    /**
+     * yqm作者注册
+     *
+     * @param int $fromuid 推荐人id
+     */
+    public function authorRegAction() {
+        $this->pageTitle = '作者注册';
+        $fromuid         = I("param.fromuid", 0, "intval");
+        //如果已经登录，且是作者则跳出
+        $uid             = isLogin();
+        if ($uid) {
+            $userModel = new \Client\Model\UserModel();
+            $isauthor  = $userModel->checkAuthorByUid($uid);
+            if ($isauthor > 0) {
+                $this->redirect($this->M_forward, "", 2, "您已经是作者");
+            }
+        }
+        $this->assign("fromuid", $fromuid);
+        $this->display();
+    }
+
+    /**
+     * 进入作者中心
+     *
+     */
+    public function authorLoginAction() {
+        //检测登录
+        $uid = isLogin();
+        if (!$uid) {
+            $this->redirect(url("User/login", array("fu" => url("User/authorLogin", array('sign' => 1), 'do')), 'do'), "", 2, "请先登录");
+        }
+        $sign = I("param.sign", 0, "intval");
+        $url  = I("param.url", "", "trim");
+        if ($sign) {
+            if ($sign == 1) {
+                $url = C("AUTHORLOGINURL") . "/newauthortools/index.php";
+            } else if ($sign == 2) {
+                $url = C("AUTHORLOGINURL") . "/newauthortools/index.php?mod=book&act=listbook";
+            } else if ($sign == 3) {
+                $url = C("AUTHORLOGINURL") . "/newauthortools/index.php?mod=book&act=newbook";
+            } else {
+                _exit();
+            }
+        }
+        $username = trim(session("username"));
+        $where    = array(
+            "uid" => $uid,
+        );
+        $password = M("user")->where($where)->getField("password");
+        header("Content-Type: text/html; charset=utf-8");
+        echo '<html><head><title>正在进入作者中心</title></head>'
+        . '<body onload="document.authorform.submit()">'
+        . '<form name="authorform" action="' . C("AUTHORLOGINURL") . '/new2old_login.php" method="post">'
+        . '<input type="hidden" name="fu" value="' . rawurlencode($url) . '"/>'
+        . '<input type="hidden" name="cookietime" value="3600"/>'
+        . '<input type="hidden" name="token" value="' . uc_authcode($username . "\t" . $password, 'ENCODE', C('AUTHOR_PASSOWRD_KEY'), 20) . '"/>'
+        . '</form></body></html>';
+    }
+
+    /**
+     * 元气萌 书圈
+     *
+     */
+    public function shuquanAction() {
+        $uid = isLogin();
+        if (!$uid) {
+            if (CLIENT_NAME == 'ios' && CLIENT_VERSION >= '2.0.0'){
+                doClient('User/login');
+            } else {
+                $this->redirect(url('User/login', array('fu' => url('User/shuquan', array(), 'do')), 'do'), array(), 2, '请先登录');
+            }
+        }
+        /*
+        $comModel = new \Client\Model\NewcommentModel();
+        //我发起的评论
+        $mycomments = array();
+        $mycomments = $comModel->getCommentByUid($uid,2);
+        if($mycomments && is_array($mycomments)){
+            foreach($mycomments as &$commment){
+                $commment['time'] = date('Y-m-d',$commment['creation_date']);    
+            }
+        }
+        //我回复的评论
+        $replyModel = M('newcomment_reply');
+        $myreplies = array();
+        $subMap = array('uid'=>$uid);
+        $subSql = $replyModel->field('distinct comment_id')->where($subMap)->order('creation_date DESC')->buildSql();
+        $cmap = array(
+            'comment_id'=>array('exp',' IN '.$subSql),
+            'forbidden_flag'=>0,
+            'deleted_flag'=>0,
+            'content'=>array('neq',''),
+        );
+        $myreplies = $comModel->field('comment_id,title,content,reply_amount,zan_amount,creation_date,bid,forbidden_flag')->
+                    where($cmap)->limit(0,2)->select();
+        if($myreplies && is_array($myreplies)){
+            foreach($myreplies as &$reply){
+                $reply['time'] = date('Y-m-d',$reply['creation_date']);
+            }
+        }
+        //回复我的评论(即我的评论的回复)
+        $replymycomments = array();
+        unset($subSql);
+//         $subSql = $comModel->field('comment_id')->where($cmap)->buildSql();
+        $subwhere = array(
+            'deleted_flag'=>0,
+            'content'=>array('neq',''),
+            'uid'=>$uid,
+        );
+        $subSql = $comModel->field('comment_id')->where($subwhere)->buildSql();
+        $rmap = array(
+            'r.comment_id'=>array('exp',' IN '.$subSql),
+            'r.delete_flag'=>0,
+            'r.content'=>array('neq',''),
+            'r.isread'=>0,
+            array(
+                'r.forbidden_flag'=> 0,
+                'r.uid' => $uid,
+                '_logic'=>'OR'
+            )
+        );
+        $replymycomments = $replyModel->alias('r')->where($rmap)->
+                        field('r.reply_id,r.comment_id,r.bid,r.uid,r.username,r.content,r.creation_date,r.nickname,r.forbidden_flag,r.support,r.reply_amount')->
+                        limit(0,2)->select();
+        if($replymycomments && is_array($replymycomments)){
+            foreach($replymycomments as &$vo){
+                $vo['time'] = date('Y-m-d',$vo['creation_date']);
+            }
+        }
+        
+        $this->assign('mycomments',$mycomments);
+        $this->assign('myreplies',$myreplies);
+        $this->assign('replymycomments',$replymycomments);
+        */
+        $this->display();
+    }
+    
+    /**
+     * 书圈评论/回复详情页
+     * @param string $name 评论/回复的标志 
+     */
+    public function shuquanDetailAction(){
+        $name = I('get.name','','trim');
+        if(!$name){
+            _exit('参数错误！');
+        }
+        if($name == 'mycomments'){
+            $this->pageTitle = '我发起的评论';
+        }elseif ($name == 'myreplies'){
+            $this->pageTitle = '我回复的评论';
+        }else{
+            $this->pageTitle = '回复我的评论';
+        }
+        
+        $this->assign('name',$name);
+        $this->display();
+    }
+    /**
+     * 兑换红薯卡
+     * 
+     */
+    public function cardAction(){
+        $this->pageTitle = '我的红薯卡';
+        $uid = isLogin();
+        if(!$uid){
+            $this->redirect(url('User/login', array("fu" => url("User/card", array(), 'do')), 'do'), '', 2, '请先登录');
+        }
+        
+        $this->display();
+    }
+    
+    /**
+     * 兑换记录
+     */
+    public function cardrecordAction(){
+        $this->pageTitle = '兑换记录';
+        $uid = isLogin();
+        if(!$uid){
+            $this->redirect(url('User/login', array("fu" => url("User/cardresult", array(), 'do')), 'do'), '', 2, '请先登录');
+        }
+        $where  = array('uid'=>$uid,'isusered'=>1);
+        $cardModel = M('card');
+        $cardlist = array();
+        //兑换时间是gettime
+        $cards = $cardModel->field('cardno,cardtype,addmonth,cardnum,gettime')->where($where)->order('addmonth DESC')->select();
+        if($cards && is_array($cards)){
+            foreach($cards as $vo){
+                $vo['gettime'] = date('Y-m-d',$vo['gettime']);
+                $vo['time'] = date('Y-m-d',$vo['addmonth']);
+                $cardlist[] = $vo;
+            }
+        }
+        
+        $this->assign('cardlist',$cardlist);
+        $this->display();
+    }
+    /**
+     * 喵阅读：个人中心->我的作品
+     * 
+     */
+    public function myBooksAction(){
+        $uid = isLogin();
+        if(!$uid){
+            $this->redirect(url('User/login', array("fu" => url("User/myBooks", array(), 'do')), 'do'), '', 2, '请先登录');
+        }
+        $userinfo = session();
+        //是否是作者
+        if($userinfo['isauthor'] && intval($userinfo['authorid'])){
+            //是否已发表过书籍
+            $bookModel = new \Client\Model\BookModel();
+            $books = $bookModel->getBookByAuthorId($userinfo['authorid']);
+            if($books && is_array($books)){
+                //已发表过书籍则跳转到作者中心
+                $url = C("AUTHORLOGINURL") . "/newauthortools/index.php";
+                $userModel = new \Client\Model\UserModel();
+                $password = $userModel->where(array('uid'=>$uid))->getField('password');
+                header("Content-Type: text/html; charset=utf-8");
+                echo '<html><head><title>正在进入作者中心</title></head>'
+                .'<body onload="document.authorform.submit()">'
+                .'<form name="authorform" action="' . C("AUTHORLOGINURL") . '/new2old_login.php" method="post">'
+                .'<input type="hidden" name="fu" value="' . rawurlencode($url) . '"/>'
+                .'<input type="hidden" name="cookietime" value="3600"/>'
+                .'<input type="hidden" name="token" value="' . uc_authcode($userinfo['username'] . "\t" . $password, 'ENCODE', C('AUTHOR_PASSOWRD_KEY'), 20) . '"/>'
+                .'</form></body></html>';
+                exit;
+            }
+        }
+        
+        $this->display();
+    }
+    /**
+     * 喵阅读，个人中心->我的消息
+     */
+    public function myInformationAction(){
+        $uid = isLogin();
+        if(!$uid){
+            $this->redirect(url('User/login', array("fu" => url("User/myInformation", array(), 'do')), 'do'), '', 2, '请先登录');
+        }
+        $commentModel = new \Client\Model\NewcommentModel();
+        //我的评论
+        $myCommentNum = 0;
+        $map = array(
+            'uid' => $uid,
+            'deleted_flag' => 0,
+            'content'=>array('neq',''),
+            array(
+                'forbidden_flag'=>array('neq',1),
+                'uid'=>$uid,
+                '_logic'=>'OR',
+            ),
+        );
+        $myCommentNum = $commentModel->where($map)->count();
+        //回复我的
+        $replyCommentNum = 0;
+        $cmap = array(
+            'uid'=>$uid,
+            'forbidden_flag'=>0,
+            'deleted_flag'=>0,
+            'content'=>array('neq','')
+        );
+        $subSql = $commentModel->field('comment_id')->where($cmap)->buildSql();
+        $rmap = array(
+            'r.comment_id'=>array('exp',' IN '.$subSql),
+            'r.delete_flag'=>0,
+            'r.content'=>array('neq',''),
+            'r.isread'=>0,
+            array(
+                'r.forbidden_flag'=> 0,
+                'r.uid' => $uid,
+                '_logic'=>'OR'
+            )
+        );
+        $replyModel = M('NewcommentReply');
+        $replyCommentNum = $replyModel->alias('r')->where($rmap)->count();
+        
+        $this->assign('mycommentnum',$myCommentNum);
+        $this->assign('replycommetnum',$replyCommentNum);
+        $this->display();
+    }
+    /**
+     * 喵阅读，个人中心->我的书评
+     * 
+     */
+    public function myBookReviewAction(){
+        $uid = isLogin();
+        if(!$uid){
+            $this->redirect(url('User/login', array("fu" => url("User/myBookReview", array(), 'do')), 'do'), '', 2, '请先登录');
+        }
+        $type = I('get.type',0,'intval');
+        
+        $this->assign('type',$type);
+        $this->display();
+    }
+    /**
+     * 喵阅读,发送邮件设置密码
+     * @param string $id(base64_encode的uid)
+     * @param string $code(base64_encode)
+     */
+    public function setPasswordAction(){
+        $id = I('get.id','','trim');
+        $code = I('get.code','','trim');
+        if(!$id || !$code){
+            _exit('参数错误！');
+        }
+        $uid = base64_decode($id);
+        $code = base64_decode($code);
+        $userModel = new \Client\Model\UserModel();
+        $cacheCode = $userModel->getPwdValidCode($uid);
+        if(!$cacheCode || $cacheCode != $code){
+            //重新发送邮件
+            $this->redirect(url('User/losepwd',array(),'do'),'',2,'链接已失效，请重新获取邮件');
+        }
+        
+        $this->assign('id',$id);
+        $this->assign('code',$code);
+        $this->display();
+    }
+    
+
+    private function clearCookie() {
+        session('[start]');
+        //将前版的cookie和session清除一下
+        if (!empty($_COOKIE)) {
+            foreach ($_COOKIE as $key => $val) {
+                if ($key != 'favs' && $key != 'sex_flag') {  //要保留的
+                    setcookie($key, '', time() - 3600, C('COOKIE_PATH'), C('COOKIE_DOMAIN'), C('COOKIE_SECURE'), C('COOKIE_HTTPONLY'));
+                    unset($_COOKIE[$key]);
+                }
+            }
+        }
+        session_unset();
+        session_destroy();
+        session_write_close();
+        cookie(session_name(), '', -1);
+    }
+
+}

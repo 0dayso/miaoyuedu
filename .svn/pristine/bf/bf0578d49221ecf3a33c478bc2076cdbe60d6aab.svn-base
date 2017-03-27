@@ -1,0 +1,20 @@
+<block name="header">
+    <div class="header clearfix">
+        <div class="container ">
+            <div class="logo"><img src="__IMG__/logo.png" /></div>
+            <div class="topnav">
+                     <a href="#"><img src="__IMG__/ic_topnav_fuli.png"  />福利</a>
+                     <a href="#"><img src="__IMG__/ic_topnav_phone.png"  />喵手机</a>
+                     <a href="#"><img src="__IMG__/ic_topnav_chongzhi.png"  />充值</a>
+                <!--<a href="#" class="tx"><img src="__IMG__/ic_topnav_tx.png" />--></a><a href="#" class="tx on"><img src="__IMG__/avatar/avater_small.jpg" /><span class="reddot"></span>
+                     <a href="#" class="user">退出</a>
+            </div>
+        </div>
+    </div>
+    <div class="nav clearfix">
+        <div class="container ">
+            <div class="mainnav"><a href="#" class="active">首页</a><a href="#">书库</a><a href="#">排行榜</a><a href="#">完本</a> <a href="#">版权专区</a></div>
+            <div class="topsearch"><input type="search" class="inputsearch" /><button class="ssbtn"></button></div>
+        </div>
+    </div>
+</block>

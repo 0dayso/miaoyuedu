@@ -1,0 +1,179 @@
+<extend name="Common/base" />
+<block name="header">
+    <include file="Common/head1" />
+</block>
+<block name="body">
+    <div class="container  mtop10 clearfix">
+        <div  class="user">
+            <div class="lf clearfix">
+                <include file="tpl/user"/>
+            </div>
+            <div class="rt">
+                <div class="rt_unit rt_cz clearfix">
+                    <div class="rt_cz_yue"><h2>账户余额：<span class="cpink2">{$userinfo.money}</span>{:C("SITECONFIG.MONEY_NAME")}</h2></div>
+                    <div class="user_tit"><h1>账号充值</h1></div>
+                    <div class="rt_cz_methods clearfix">
+                        <div class="rt_cz_methods_tit">选择充值方式：</div>
+                        <ul>
+                            <li><a href="javascript:void(0);" payway="ALIPAY_WAP" name="payway" class="cz_zfb radius4 active"></a><p>1元=<span class="cpink2">100</span>{:C("SITECONFIG.MONEY_NAME")}</p></li>
+                            <li><a href="javascript:void(0);" payway="WEIXINPAY" name="payway" class="cz_wx radius4"></a><p>1元=<span class="cpink2">100</span>{:C("SITECONFIG.MONEY_NAME")}</p></li>
+                        </ul>
+                    </div>
+                    <div class="rt_cz_methods2  clearfix">
+                        <div class="rt_cz_methods_tit">选择充值的金额：</div>
+                        <ul>
+                            <li name="s"><input type="radio" name="s" checked value="10" />10元</li>
+                            <li name="s"><input type="radio" name="s" value="20"/>20元</li>
+                            <li name="s"><input type="radio" name="s" value="30"/>30元</li>
+                            <li name="s"><input type="radio" name="s" value="50"/>50元</li>
+                            <li name="s"><input type="radio" name="s" value="100"/>100元</li>
+                        </ul>
+                    </div>
+                    <div class="rt_cz_result">
+                        您将支付<span class="cpink2" id="rmb">10</span>元 ，可获得<span class="cpink2" id="money">1000</span>{:C("SITECONFIG.MONEY_NAME")}<button class="mainbtn radius4" id="tijiao">提交</button>
+                    </div>
+                    <div class="ts cz_ts">
+                        <!-- <p><a href="#" target="_blank">.收费小说消费规则</a></p>
+                        <p><a href="#" target="_blank">.手机卡充值提醒</a></p>
+                        <p><a href="#" target="_blank">.什么是喵币？喵币能做什么？</a></p>
+                        <p><a href="#" target="_blank">.什么是喵豆</a></p> -->
+
+                    </div>
+                    <form method="POST" target="_self" action="" id="payform" style="display:none">
+			            <input type="hidden" name="uid" value="{$userinfo.uid}">
+			            <input type="hidden" name='username' value='{$userinfo.username}'>
+			            <input type="hidden" name="siteid" value="{$siteid}">
+			            <input type="hidden" name="fu" id="fu" value="{$M_forward}">
+			            <input type="hidden" name="amount" id="amount" value="<?php echo $amount; ?>">
+			            <input type="submit">
+			        </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</block>
+<block name="script">
+    <script type="text/javascript">
+        //默认比例
+        var cur_zhekou = 100;//当前选中充值的折扣;
+        var cur_money = 10;//当前选中充值金额;
+        var cur_paytype = 'ALIPAY_WAP';
+        require(['mod/user'],function(user){
+            var cur_money=$(':checked').val();
+            $('a[name="payway"]').on('click',function(){
+		        $('a[name="payway"]').removeClass('active');
+		        $(this).addClass('active');
+		        cur_paytype=$(this).attr('payway');
+	    	})
+            $('li[name="s"]').on('click',function(){
+            	cur_money=$(':checked').val();
+            	$('#rmb').html(cur_money);
+            	$('#money').html(cur_money*cur_zhekou);
+            	$('#amount').val(cur_money);
+            })
+            $('#tijiao').on('click',function(){
+                pay_next_step();
+            })
+            
+            user.listmark();
+        })
+    </script>
+    <script type="text/javascript">
+    function pay_next_step() {
+            var nn="{$M_forward}";
+            var openid="{$openid}";
+            var string=nn.toLowerCase();
+            /*if(!(string.indexOf('/buyviplist')>0)){
+                var nn="__MOBDOMAIN__{:url('User/index')}";
+            }*/
+            $('#fu').val(nn);
+            $('#amount').val(cur_money);
+            if (cur_paytype == 'WEIXINPAY') {
+                if(openid){
+                    $("#vipbtn").removeAttr('disabled');
+                    return doWeiXinPay();
+                } else {
+                    $('#payform').attr('action', '__USERDOMAIN__/weixinpay/wechatwap.do');
+                }
+            } else if (cur_paytype == 'ALIPAY_WAP') {
+                <if condition="$is_wechat eq 1">
+                var uid='{$userinfo.uid}';
+                var username='{$userinfo.username}';
+                var fu='{$M_forward}';
+                var siteid='{:C('CLIENT.'.CLIENT_NAME.'.fromsiteid')}';
+                var url=parseUrl({zhekou:cur_zhekou,jine:cur_money,uid:uid,username:username,siteid:siteid,fu:fu},'Alipyhelp/AlipayFromWexin');
+                hg_gotoUrl(url);
+                return;
+                <else/>
+                $('#payform').attr('action', '__PAYDOMAIN__/alipaywap/alipaywap.do');</if>
+            } 
+            document.getElementById("payform").submit();
+        }
+        function doWeiXinPay(){
+            var url = '__USERDOMAIN__/weixinpay/createorder.do';
+            var data = {
+                uid:'{$userinfo.uid}',
+                username:'{$userinfo.username}',
+                fu:'{$M_forward}',
+                siteid:'{:C('CLIENT.'.CLIENT_NAME.'.fromsiteid')}',
+                amount:cur_money,
+                openid:'{$openid}'
+            };
+            $.ajax({
+                url: url,
+                type:"GET",
+                data: data,
+                dataType: 'jsonp',
+                jsonpCallback: 'ordercallback',
+                complete: function(){
+                    endloading();
+                },
+                success: function(json){
+                },
+                error: function(json) {
+                }
+            });
+            return false;
+        }
+
+        function ordercallback(json) {
+            wx.ready(function(){
+                if(json.status==1) {
+                    wx.chooseWXPay({
+                        timestamp: json.timeStamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+                        nonceStr: json.nonceStr, // 支付签名随机串，不长于 32 位
+                        package: json.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=***）
+                        signType: json.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+                        paySign: json.paySign, // 支付签名
+                        success: function (res) {
+                            // 支付成功后的回调函数
+
+                            if(res.err_msg.toLowerCase().indexOf('ok')!==false) {
+                                hg_Toast('充值成功！', 3);
+                                location.reload();
+                            }else{
+                                hg_Toast('微信授权失败，请重试或者换一种充值方式');
+//                                hg_Toast(JSON.stringify(res), 5);
+//                                $('#payform').attr('action', '__USERDOMAIN__/weixinpay/wechatwap.do');
+//                                document.getElementById("payform").submit();
+                                return false;
+                            }
+                        },
+                        cancel: function(res) {
+                            hg_Toast('您取消了支付！');
+                        },
+                        fail: function(res) {
+//                            hg_Toast('fail:'+JSON.stringify(res));
+                            $('#payform').attr('action', '__USERDOMAIN__/weixinpay/wechatwap.do');
+                            document.getElementById("payform").submit();
+                            return false;
+                        }
+                    });
+                } else {
+                    hg_Toast(json.message);
+                }
+            });
+        }
+    </script>
+</block>

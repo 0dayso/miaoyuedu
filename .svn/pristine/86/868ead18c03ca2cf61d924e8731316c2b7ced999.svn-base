@@ -1,0 +1,229 @@
+<?php
+/**
+ * 注意，这里是通用的配置文件，原则上不允许自行修改！
+ * 通用配置是适合所有客户端或者绝大多数客户端使用。如果需要为某个或者某几个客户端做独立的配置，尤其是会影响到其它客户端的配置，请单独填写并单独加载！
+ */
+return array(
+    //扩展配置
+    'LOAD_EXT_CONFIG'        => 'db,memcache,redis,category,cachemap,usergroup,uservip,pay,site,router,bookpro,messages,androidchannel',
+
+    //模板替换规则
+    'TMPL_PARSE_STRING'     =>  array(
+        '__STATICURL__'        =>    '//img1.hongshu.com',
+        '__PUBLIC__'         =>  '//img1.hongshu.com/Public',
+        '__JS__'             =>  '//img1.hongshu.com/Public/javascript',
+        '__CSS__'             =>  '//img1.hongshu.com/Public/css',
+        '__IMG__'            =>  '//img1.hongshu.com/Public/images',
+
+        '__STATICURLSAFE__'    =>    '//img2.hongshu.com',
+        '__PUBLICSAFE__'    =>  '//img2.hongshu.com/Public',
+        '__JSSAFE__'         =>  '//img2.hongshu.com/Public/javascript',
+        '__CSSSAFE__'        =>  '//img2.hongshu.com/Public/css',
+        '__IMGSAFE__'        =>  '//img2.hongshu.com/Public/images',
+        '__PLUGINSSAFE__'    =>  '//img2.hongshu.com/Public/plugins',
+
+        '__HOMEDOMAIN__'    =>  'http://www.hongshu.com',
+        '__BOYDOMAIN__'        =>  'http://gg.hongshu.com',
+        '__GIRLDOMAIN__'    =>  'http://mm.hongshu.com',
+        '__BOOKDOMAIN__'    =>  'http://www.hongshu.com',
+        '__PAYDOMAIN__'        =>  'https://wallet.hongshu.com',
+        '__USERDOMAIN__'    =>  'https://i.hongshu.com',
+        '__MOBDOMAIN__'        =>    'http://m.hongshu.com',
+        '__AUTHORDOMAIN__'  =>  'http://author.hongshu.com',
+        '__ANDROIDDOMAIN__' =>  'http://android.client.hongshu.com',
+        '__IOSDOMAIN__'     =>  'http://ios.client.hongshu.com',
+
+    ),
+    //应用设定
+    'APP_SUB_DOMAIN_DEPLOY' =>  true,   // 是否开启子域名部署
+    'APP_SUB_DOMAIN_RULES'  =>  array(
+        'i.hongshu.com'      => 'User',
+        'wallet.hongshu.com'=> 'Pay',
+        'gg.hongshu.com'    => 'Home/Nanindex',
+        'mm.hongshu.com'    => 'Home/Nvindex',
+        'mob.hongshu.com'    => 'Mob',                    //M站对应的子域名的部署
+        'android.client.hongshu.com' => array('Client', 'client=android'),
+        'ios.client.hongshu.com'     => array('Client', 'client=ios'),
+        'm.hongshu.com'       => array('Client', 'client=html5'),
+        'g.hongshu.com'       => array('Client', 'client=wap'),
+
+    ), // 子域名部署规则
+    'ACTION_SUFFIX'         =>  'Action', // 操作方法后缀
+    'MULTI_MODULE'          =>  true, // 是否允许多模块 如果为false 则必须设置 DEFAULT_MODULE
+    'MODULE_DENY_LIST'      =>  array('Common','Runtime'), // 禁止访问的模块列表
+    'MODULE_ALLOW_LIST'     =>  array('Home', 'Client'),    // 允许访问的模块列表
+
+    //默认设定
+    'DEFAULT_FILTER'        =>  'strip_tags,htmlspecialchars,urldecode', // 默认参数过滤方法 用于I函数...
+    'DEFAULT_MODULE'        =>  'Home',  // 默认模块
+    'DEFAULT_CONTROLLER'    =>  'Index', // 默认控制器名称
+    'DEFAULT_ACTION'        =>  'index', // 默认操作名称
+    'DEFAULT_TIMEZONE'      =>  'PRC',    // 默认时区
+    'TOKEN_ON'              =>    true,  // 是否开启令牌验证 默认关闭
+    'TOKEN_NAME'            =>    '__hash__',    // 令牌验证的表单隐藏字段名称，默认为__hash__
+    'TOKEN_TYPE'            =>    'md5',  //令牌哈希验证规则 默认为MD5
+    'TOKEN_RESET'           =>    true,  //令牌验证出错后是否重置令牌 默认为true
+
+    //Cookie设置
+    'COOKIE_PREFIX'         =>  'client',      // Cookie前缀 避免冲突
+    'COOKIE_DOMAIN'         =>  '.client.hongshu.com',      // Cookie有效域名
+
+    // 错误设置
+
+    'ERROR_MESSAGE'         =>  '页面错误！请稍后再试～',//错误显示信息,非调试模式有效
+    'ERROR_PAGE'            =>  'http://www.hongshu.com/404.html', // 错误定向页面
+    'SHOW_ERROR_MSG'        =>  false,    // 显示错误信息
+    'TRACE_MAX_RECORD'      =>  100,    // 每个级别的错误信息 最大记录数
+
+    /* 日志设置 */
+    'LOG_RECORD'            =>  false,   // 默认不记录日志
+    'LOG_TYPE'              =>  'File', // 日志记录类型 默认为文件方式
+    'LOG_LEVEL'             =>  'EMERG,ALERT,CRIT,ERR',// 允许记录的日志级别
+    'LOG_FILE_SIZE'         =>  2097152,    // 日志文件大小限制
+    'LOG_EXCEPTION_RECORD'  =>  false,    // 是否记录异常信息日志
+
+    //SESSION设置
+    'SESSION_AUTO_START'    =>  false,
+    'SESSION_PREFIX'        =>  'ses_', // session 前缀
+    'SESSION_TYPE'             =>     'Memcache',
+    'SESSION_OPTIONS'        =>    array('domain'    =>    '.client.hongshu.com'),
+
+    //模板引擎设置
+    'TMPL_ENGINE_TYPE'      =>  'Think',
+    'TMPL_TEMPLATE_SUFFIX'   => '.html.php',
+
+    //URL设置
+    'URL_CASE_INSENSITIVE'  =>  true,   // 默认false 表示URL区分大小写 true则表示不区分大小写
+    'URL_MODEL'             =>  2,       // URL访问模式,可选参数0、1、2、3,代表以下四种模式：
+    // 0 (普通模式); 1 (PATHINFO 模式); 2 (REWRITE  模式); 3 (兼容模式)  默认为PATHINFO 模式
+    'URL_HTML_SUFFIX'       =>  'html|do',  // URL伪静态后缀设置
+    'URL_DENY_SUFFIX'       =>  'ico|png|gif|jpg', // URL禁止访问的后缀设置
+
+
+    //杂项设置
+    'SPHINX_HOST'           =>     '10.23.24.83',
+    'SPHINX_PORT'           =>  9313,//sphinx port
+	//Gearman配置，支持多台服务器，每台服务器一个数组，分别配置host,port
+	'GEARMAN' => array(
+		array(
+			'host'=>'10.23.24.83',
+			'port'=>4730
+		)
+	),
+    "INTERFACEURL"          =>  'http://interface.hongshu.com',
+    'RPCURL'                =>    'http://interface.hongshu.com/yar',
+    'AUTHORLOGINURL'        =>    'http://author.hongshu.com',
+    'USERDOMAIN'            =>    'https://i.hongshu.com',
+    'PAYDOMAIN'                =>    'https://wallet.hongshu.com',
+    'HOMEDOMAIN'            =>    'http://www.hongshu.com',
+    'BOOKDOMAIN'            =>    'http://www.hongshu.com',
+    'IMGEXT'                =>    array('jpg'),
+    //加密值
+    'SECURE_CODE'              =>     '12335546ae49340b21',
+    'AUTHOR_PASSOWRD_KEY'   =>  '12335546ae49340b21',
+    'PWDCALLBACK'            =>    'https://i.hongshu.com/account/valid',
+    //根据事件添加粉丝积分
+    'INTEGRAL'                =>    array('flower' => 2, 'ticket' => 200, 'comment' => 10, 'fav' => 50, 'login' => 10, 'order' => 2),
+
+
+    /**
+     * 文章内容保存物理路径
+     */
+    'CONTENT_ROOT'      => '/data/server/resource/chapter',
+    /**
+     * 用户订购关系保存物理路径
+     */
+    'USER_DINGGOU_ROOT' => '/data/server/resource/dingoujson',
+    /**
+     * 封面页图片物理路径
+     */
+    'BOOKFACE_ROOT'     => '/data/server/resource/bookCover',
+    /**
+     * 封面页图片访问网址
+     */
+    'BOOKFACE_URL'      => '//img1.hongshu.com/bookface',
+    /**
+     * 头像图片物理路径
+     */
+    'AVATAR_ROOT'       => '/data/server/resource/upload/avatar',
+    /**
+     * 头像图片访问网址
+     */
+    'AVATAR_URL'        => '//img1.hongshu.com/avatar',
+    /**
+     * 静态文件保存目录
+     */
+    'STATICFILE_ROOT'   => '/data/server/resource/static',
+    'IMG1_ROOT'   => '/data/server/resource/upload/img1.hongshu.com',
+    /**
+     * 插画图片物理路径
+     */
+    'CHAHUA_ROOT' => '/data/server/resource/bookChahua',
+    /**
+     * 插画网址
+     */
+    'CHAHUA_URL'  => '//img1.hongshu.com/bookchahua',
+
+    'QQLOGIN'                =>         array(
+        'appid'             =>         100453757,
+        'appkey'             =>         '1ff2e23ccdc1f9d882967a38caabe0be',
+        'redirecturi'        =>        'https://i.hongshu.com/third/qq/callback.html',
+        'codeurl'            =>        'https://graph.qq.com/oauth2.0/authorize',
+        'tokenurl'            =>        'https://graph.qq.com/oauth2.0/token',
+        'openidurl'            =>        'https://graph.qq.com/oauth2.0/me',
+        'scope'             =>         'get_user_info,add_share,list_album,add_album,upload_pic,add_topic,add_one_blog,add_weibo'
+    ),
+    'SINALOGIN'                =>         array(
+        'WB_AKEY'             =>         '2931017595',
+        'WB_SKEY'             =>         'f11a6f0ea79446e44358ddc91b2b1d99',
+        'WB_CALLBACK_URL'    =>        'https://i.hongshu.com/third/sina/callback.html'
+    ),
+    'BAIDULOGIN'            =>         array(
+        'appid'                =>        '3460605',
+        'apikey'             =>         'cimK4hsSYs0zanFS5DaniQml',
+        'secretkey'            =>         'jGSNzWQG7oz9bx3kruQTuzXskKOGd036',
+        'redirecturi'        =>        'https://i.hongshu.com/third/baidu/callback.html',
+        'codeurl'            =>        'http://openapi.baidu.com/oauth/2.0/authorize',
+        'tokenurl'            =>        'https://openapi.baidu.com/oauth/2.0/token',
+        'openapiurl'        =>        'https://openapi.baidu.com/rest/2.0'
+    ),
+    'ALILOGIN'                =>         array(
+        'partner'            =>        '2088701562127742',
+        'key'                 =>         'qmdbn4j33pbegauj2gso29r4o6u6n651',
+        'sign_type'            =>         'md5',
+        'input_charset'        =>        'utf-8',
+        'transport'            =>        'http',
+        'redirecturi'        =>        'https://i.hongshu.com/third/ali/callback.html',
+        'target_service'    =>        'user.auth.quick.login'
+    ),
+    'WECHATLOGIN'            =>         array(
+        'appid'                =>        'wx6c945733843fd13f',
+        'appsecret'            =>         'b0f0c9756f8aa7341d7df03616302fd4',
+        'redirecturi'        =>        'https://i.hongshu.com/third/wechat/callback.html',
+        'codeurl'            =>        'https://open.weixin.qq.com/connect/qrconnect',
+        'tokenurl'            =>        'https://api.weixin.qq.com/sns/oauth2/access_token',
+        'openidurl'            =>        'https://graph.qq.com/oauth2.0/me',
+        'scope'             =>         'snsapi_base,snsapi_userinfo'
+    ),
+	'LOGIN_TYPE'	=> array(
+		'0'=> array(
+			'title'=>'帐号',
+		),
+		'1'=> array(
+			'title'=>'QQ',
+		),
+		'2'=> array(
+			'title'=>'新浪',
+		),
+		'3'=> array(
+			'title'=>'淘宝',
+		),
+		'4'=> array(
+			'title'=>'微信',
+		),
+		'5'=> array(
+			'title'=>'百度',
+			)
+	),
+    'CACHE_PREFIX'          =>      'txtxiaoshuo',
+);

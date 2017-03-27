@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * 模块: 配置文件
+ *
+ * 功能: 客户端相关的配置
+ *
+ * @copyright Copyright (c) 2015 – www.hongshu.com
+ * @author: guonong
+ * @version: $Id: client.php 1564 2017-03-14 06:33:37Z changliu $
+ */
+return array(
+    'DEFAULT_SEX' => '',
+    'DEFAULT_STYLE' => '',
+    //客户端相关的配置
+    'CLIENT' => array(
+        //安卓相关的配置
+        'android' => array(
+            'name' => '红薯阅读',       //网页中用到的站点名称，各客户端可不同
+            //安卓版本号
+            'version' => '1.3.4',
+            'passportkey' => 'Dhskd98@)@&URHd98328dh!383cn3=oehyr|',
+            'domain' => 'android.client.hongshu.com',
+            'fromsiteid' => 7,
+            'sht_dir' => '/data/server/resource/android_sht_content',
+            'downloadtmpdir'=>'/data/server/resource/android_sht_content/downtmpfiles',//下载章节zip包缓存临时目录
+            'apk'=> 'wwwhongshucom_vc29_v1.3.6_170106.apk',//最新客户端
+            'helpid' => 502,//服务条款id
+            'upgrade_files'=>array(
+                    '27'=>array(
+                            'status'  => 1,
+                            'url'     => 'wwwhongshucom_vc29_v1.3.6_170106.apk',
+                            'version' => '1.3.6',
+                            'message' => "1. 性能优化\n 2. 修复漏洞\n"
+                    ),
+                    '28'=>array(
+                        'status'  => 1,
+                        'url'     => 'wwwhongshucom_vc29_v1.3.6_170106.apk',
+                        'version' => '1.3.6',
+                        'message' => "1. 性能优化\n 2. 修复漏洞\n"
+                    ),
+
+            ),
+        ),
+        //IOS相关的配置
+        'ios' => array(
+            'name' => '红薯阅读',
+            //IOS版本号
+            'version' => '1.3.4',
+            'passportkey' => 'FD1c5BBD@$2d91cfa148EAAC5c7',
+            'domain' => 'ios.client.hongshu.com',
+            'fromsiteid' => 8,
+            'sht_dir' => '/data/server/resource/ios_sht_content',
+            'downloadtmpdir'=>'/data/server/resource/ios_sht_content/downtmpfiles',//下载章节zip包缓存临时目录
+            'apk'=> '_vc16_v1.2.2_140704.apk',//最新客户端
+            'helpid' => 502,//服务条款id
+        ),
+        //M站相关配置
+        'html5' => array(
+            //M站
+            'name' => '红薯中文网',
+            'version' => '1.3.4',
+            'passportkey' => 'ddkdhdkdhkl',
+            'domain' => 'm.hongshu.com',
+            'fromsiteid' => 6,
+            'helpid' => 502,                    //服务条款id
+            'DEFAULT_SEX' => 'nv',              //默认性别（不是阅读偏好）
+            'DEFAULT_STYLE' => 'nv',            //默认样式文件名
+        ),
+        //G站相关配置
+        'wap' => array(
+            //M站
+            'name' => '红薯中文网',
+            'version' => '1.3.4',
+            'passportkey' => 'ddkdhdkdhkl',
+            'domain' => 'g.hongshu.com',
+            'fromsiteid' => 4,
+            'helpid' => 502,                    //服务条款id
+            'DEFAULT_SEX' => 'nv',              //默认性别（不是阅读偏好）
+            'DEFAULT_STYLE' => 'nv',            //默认样式文件名
+        ),
+        //元气萌、轻小说
+        'yqm' => array(
+            'name' => '元气萌',
+            'MONEY_NAME'=>'元气币',
+            'EMONEY_NAME'=>'元气银币',
+            'version' => '1.3.4',
+            'passportkey' => 'ddkdhdkdhkl',
+            'domain' => 'q.hongshu.com',
+            'fromsiteid' => 1,
+            'helpid' => 443,//服务条款id
+        ),
+
+        //喵阅读
+        'myd' => array(
+            'name' => '喵阅读',
+            'MONEY_NAME'=>'喵币',
+            'EMONEY_NAME'=>'喵豆',
+            'version' => '1.3.4',
+            'passportkey' => 'ddkdhdkdhkl',
+            'domain' => 'w.miaoyuedu.com',
+            'fromsiteid' => 1,
+            'helpid' => 443,//服务条款id
+        ),
+    ),
+    'CLIENTAPPURL' => 'http://img1.hongshu.com/apk/', //客户端下载域名
+);

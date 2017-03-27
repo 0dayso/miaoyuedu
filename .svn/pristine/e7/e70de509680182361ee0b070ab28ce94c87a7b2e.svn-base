@@ -1,0 +1,58 @@
+<?php
+
+namespace Client\Controller;
+
+use Client\Common\Controller;
+
+class AlipyhelpController extends Controller {
+
+    public function _initialize() {
+        parent::_initialize();
+        noCachePage();
+    }
+
+    /**
+     * 微信内支付宝充值
+     */
+    public function AlipayFromWexinAction() {
+        $is_wechat = isInWechat();
+        $type = I('param.type', '', 'trim');
+        $action = C('PAYDOMAIN') . '/alipaywap/alipaywap.do';
+        if($type=='third') {
+            $action = C('PAYDOMAIN').'/nowpay/wap.do';
+        }
+
+        //如果在微信内则显示帮助页面
+        if ($is_wechat) {
+            $this->pageTitle = '支付宝支付';
+
+
+            $this->display("alipayfromweixin");
+        } else {
+            //在微信外打开则发送表单
+            $fu       = I("param.fu", '', "trim");
+            $amount   = I("param.jine", 0, "intval");
+            $uid      = I("param.uid", 0, 'intval');
+            $username = I('param.username', '', 'trim');
+            $siteid   = I('param.siteid', 0, 'intval');
+            if (!$amount) {
+                $this->redirect("Pay/index", array(), 2, "请选择金额");
+            }
+            header("Content-Type: text/html; charset=utf-8");
+            echo "<html>" .
+            "<body onload='document.payform.submit()'>" .
+            "<form name='payform' method='get' style='display:none' action='" . $action . "'>" .
+            "<input type='hidden' name='amount' value=" . $amount . "/>" .
+            "<input type='hidden' name='fu' value='" . $fu . "'/>" .
+            "<input type='hidden' name='uid' value='" . $uid . "'/>" .
+            "<input type='hidden' name='username' value='" . $username . "'/>" .
+            "<input type='hidden' name='siteid' value='" . $siteid . "'/>" .
+            "<input type='hidden' name='payway' value='12'/>" .
+            "<input type='hidden' name='outwechat' value=1 />" .
+            "</form>" .
+            "</body>" .
+            "</html>";
+        }
+    }
+
+}

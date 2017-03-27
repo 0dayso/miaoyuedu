@@ -1,0 +1,61 @@
+<include file="Common/head" />
+</head>
+<body>
+
+<block name="header">
+    <!--顶部开始-->
+    <!--顶部结束-->
+</block>
+
+<!--内容开始-->
+<block name="body"></block>
+<!--内容结束-->
+
+<!--底开始-->
+<block name="footer">
+    <include file="Common/foot" />
+</block>
+<!--底结束-->
+
+<!-- 代码开始 -->
+<include file="Common/var" />
+
+<script src="__JS__/require.js" defer async="true" ></script>
+<script src="__JS__/require.js" data-main="__JS__/main"></script>
+<script src="__JS__/jquery.min.js"></script>
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https'){
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    } else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<block name="script"></block>
+<!-- 代码结束 -->
+<script type="text/javascript">
+    require(['common','functions','clicktracker'],function(){
+        UserManager.checkLogin(true,function(user){
+            if(!user.islogin){
+                $('a[name="islogin"]').hide();
+                $('a[name="nologin"]').show();
+            }else{
+                $('a[name="islogin"]').show();
+                $('a[name="nologin"]').hide();
+                $('#useravatar').attr('src',user.avatar);
+                var dashanglist="{$propsList}";
+                if(dashanglist){
+                    $(money_egold).html('剩余：<b class="cpink2">'+user.money+'</b>{:C("SITECONFIG.MONEY_NAME")},<b class="cpink2">'+user.egold+'</b>{:C("SITECONFIG.EMONEY_NAME")}')
+                }
+            }
+
+        })
+    })
+</script>
+</body>
+</html>

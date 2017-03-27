@@ -1,0 +1,472 @@
+<?php
+/**
+ * 模块: 客户端支持
+ *
+ * 功能: 小说
+ *
+ * @copyright Copyright (c) 2015 – www.hongshu.com
+ * @author: anluo
+ * @version: $Id$
+ */
+
+namespace Client\Controller;
+
+use Client\Common\Controller;
+
+class GuestbookController extends Controller {
+    public function _initialize() {
+        parent::_initialize();
+    }
+
+    /**
+     * 书评
+     *
+     * @param int $bid 书籍id get
+     *
+     * @return array
+     */
+    public function IndexAction() {
+//$u = new \Client\Model\UserModel();
+//$result = $u->login(2529346, 86400);
+//echo $result;
+//$this->check_user_login();
+        $bid = I("get.bid", 1, "intval");
+        $this->check_user_login();
+        $uid = isLogin();
+        if ($uid) {
+            $is_login = 1;
+        }
+        //获取书籍信息,并从缓存读取分类信息
+        $bookobj = new \Client\Model\BookModel();
+        $bookinfo = $bookobj->getBook($bid, 0);
+
+		//男女样式标志
+        $style = "nv";
+        //样式标志
+        $this->assign("style", $style);
+
+        $this->pageTitle = "留言板";
+        //次级导航条title
+        $this->assign("secondTitle","留言板");
+        //总回复数
+		$comModel = new \Client\Model\NewcommentModel();
+		$map = array('bid'=>$bid);
+		$total = $comModel->where($map)->count();
+		$this->assign('total', $total);
+		unset($bookobj);
+		
+		$sort = I('sort', 'hot', 'trim');
+		if($sort!='time') {
+			$sort = 'hot';
+		}
+		$this->assign('sort', $sort);
+        $this->assign('bid', $bid);
+        $this->assign('is_login', $is_login);
+        $this->display();
+    }
+
+    /**
+     * 书评回复
+     *
+     * @param int $comment_id 书评id get
+     * @param int $pagenum 当前页码 get
+     * @param int $totalnum 总记录条数 get
+     *
+     * @return array 书评回复数组
+     */
+    public function replyCommentAction() {
+        $comment_id = I('get.comment_id', 0, 'intval');
+        $bid = I('get.bid', 0, 'intval');
+        if (!$bid || !$comment_id) {
+            _exit('参数错误');
+        }
+
+        $bookModel   = new \Client\Model\BookModel();
+        $bookinfo    = $bookModel->getBook($bid);
+        //男女样式标志
+        $style = 'nan';
+        if ((int) $bookinfo['classid'] == 2) {
+            $style = "nv";
+        }
+        //样式标志
+        $this->assign("style", $style);
+        //查询条件
+        $where       = array(
+            'n.bid'          => $bid,
+            'n.deleted_flag' => array('neq', 1),
+            'n.content'      => array('neq', ''),
+            'n.comment_id'   => $comment_id,
+            'n.forbidden_flag'=>array('neq',1),
+        );
+        $this->check_user_login();
+        $uid = isLogin();
+        if($uid){
+            $where       = array(
+                'n.bid'          => $bid,
+                'n.deleted_flag' => array('neq', 1),
+                'n.content'      => array('neq', ''),
+                'n.comment_id'   => $comment_id,
+                array(
+                    'n.forbidden_flag'=>array('neq',1),
+                    'n.uid'=>$uid,
+                    '_logic'=>'OR'
+                ),
+            );
+        }
+        $commentinfo = M('newcomment')->alias('n')->field('u.nickname,n.*')->join('__READ_USER__ as u on n.uid = u.uid','left')->where($where)->find();
+        if(!$commentinfo){
+            _exit("暂无评论");
+        }
+        /*更新回复的阅读状态(isread) start*/
+        if(CLIENT_NAME == 'yqm'){
+            if($uid && intval($commentinfo['uid']) == $uid){
+                $rmap = array(
+                    'comment_id' => $comment_id,
+                    'delete_flag'=> array('neq',1),
+                    'content' => array('neq',''),
+                    array(
+                        'forbidden_flag'=>array('neq',1),
+                        'uid'=>$uid,
+                        '_logic'=>'OR'
+                    ),
+                );
+            M('newcomment_reply')->where($rmap)->save(array('isread'=>1));
+            }
+            //书籍封面
+            $bookinfo['bookface'] = getBookfacePath($bid);
+            //作者头像
+            $authormap = array('authorid'=>$bookinfo['authorid']);
+            $authoruid = M('author')->where($authormap)->getField('uid');
+            $bookinfo['author_avatar'] = getUserFaceUrl($authoruid,'big');
+            //粉丝值
+            $bookinfo['fansval'] = $bookinfo['salenum'] + $bookinfo['total_pro'];
+            //开始连载日期
+            $bookinfo['lzstart'] = date('Y-m-d',$bookinfo['posttime']);
+        }
+        /*更新回复的阅读状态(isread) end*/
+        if (!$commentinfo['nickname']) {
+            $commentinfo['nickname'] = $commentinfo['username'];
+        }
+        //友好的时间显示
+        if ($commentinfo['creation_date']) {
+            $commentinfo['time'] = friendly_date($commentinfo['creation_date'], 'mohu');
+        }
+        //评论头像
+        $commentinfo['avatar'] = '';
+        if(intval($commentinfo['uid'])){
+            $avatar = getUserFaceUrl($commentinfo['uid']);
+            $commentinfo['avatar'] = $avatar;
+        }
+        //回复数
+        unset($where);
+        $where      = array(
+            'bid'=>$bid,
+            'delete_flag' => array('neq', 1),
+            'content'     => array('neq', ''),
+            'comment_id'  => $comment_id,
+            'forbidden_flag'=>array('neq',1)
+        );
+        if($uid){
+            $where = array(
+                'bid'=>$bid,
+                'delete_flag' => array('neq', 1),
+                'content'     => array('neq', ''),
+                'comment_id'  => $comment_id,
+                array(
+                    'forbidden_flag'=>array('neq',1),
+                    'uid'=>$uid,
+                    '_logic'=>'OR'
+                )
+            );
+        }
+        $replycount = M('newcomment_reply')->where($where)->count();
+        $this->pageTitle = '《' . $bookinfo['catename'] . '》的评论';
+
+        $this->assign('replycount', intval($replycount));
+        $this->assign('commentinfo', $commentinfo);
+        $this->assign('bookinfo', $bookinfo);
+        $this->display('replyComment');
+    }
+
+    /**
+     * 添加书籍评论
+     *
+     * @param int $bid 书籍id post
+     * @param string $content 评论内容 post
+     *
+     * @return string 添加成功/失败信息
+     *      needlogin字段用来告知客户端是否需要登录(=1需要登录，=0不需要登录)--元气萌客户端开始启用
+     */
+    public function addCommentAction() {
+        $output = array("status" => 0, "message" => "", "url" => "","needlogin"=>0);
+        $this->check_user_login();
+        $uid = isLogin();
+        if (!$uid) {
+            $output['needlogin'] = 1;
+            $output['message'] = "请先登录";
+            $output['url'] = url("User/login", array(), 'do');
+            $this->ajaxReturn($output);
+        }
+        $bid = I('post.bid', 0, 'intval');
+        if (!$bid) {
+            $output['message'] = "非法参数";
+            $this->ajaxReturn($output);
+        }
+        $content = I("post.content", "", 'trim,removeXSS');
+        if (strlen($content) <= 0) {
+            $this->ajaxReturn('评论不能为空');
+        } elseif (mb_strlen($content, "utf-8") < C('COMMENTMINSIZE') || mb_strlen($content, "utf-8") > C('COMMENTMAXSIZE')) {
+            $output['message'] = '书评字数必须在' . C('COMMENTMINSIZE') . '字和' . C('COMMENTMAXSIZE') . '字之间!';
+            $this->ajaxReturn($output);
+        }
+        //检查违禁词
+        $comModel = new \Client\Model\NewcommentModel();
+        $badwords = $comModel->getBreakWordR($content);
+        if ($badwords) {
+            $output['message'] = '评论内容不能含有违禁词';
+            $this->ajaxReturn($output);
+        }
+        /* 检查某个用户是否被禁止在某个书内发言 */
+        $forbiddenWhere = array(
+            'bid' => $bid,
+            'uid' => $uid,
+        );
+        $forbiddenUser = M('newcomment_killuser')->where($forbiddenWhere)->select();
+        if (!empty($forbiddenUser)) {
+            $output['message'] = '对不起,您已被禁止评论该书';
+            $this->ajaxReturn($output);
+        }
+        /* 表情?
+          if(preg_match("/\[em:(\d)+:\]/iu", $content)){
+          $content = str_replace("[em:","<img src='".C('TMPL_PARSE_STRING')['__IMG__']."/face/",
+          str_replace(":]", ".gif' />", $content));
+          }
+         */
+        /* 评论间隔30秒 */ //TODO:没效果？
+        $key = 'lastCommentTime#' . get_client_ip() . session_id();
+        $cacheObj = new \HS\MemcacheRedis();
+        $lastCommentTime = $cacheObj->get($key);
+        $btTime = intval(C('ALLOWCOMMENT', null, 30));
+        $btTime = $btTime? : 30;
+        if ((time() - $lastCommentTime) < $btTime) {
+            $output['message'] = "评论时间间隔为" . $btTime . '秒,请稍后再试。';
+            $this->ajaxReturn($output);
+        }
+
+        //计算长度,大于300 is_lcomment为1,否则为0
+        $charnum = mb_strlen($content, 'utf-8');
+        if ($charnum > 300) {
+            $is_lcomment = 1;
+        } else {
+            $is_lcomment = 0;
+        }
+        //插入数据库并更新积分,调用Book/Model的Comment->add();
+        $user = session();
+        $comModel = new \Client\Model\NewcommentModel();
+        //返回comment_id
+        $ret = $comModel->add('', $content, $bid, $user, 1, $is_lcomment, 0, 0, 0, 0);
+        if ($ret > 0) {
+            $cacheObj->setMc($key, NOW_TIME, $btTime);
+
+            $arr = array();
+            $arr["comment_id"] = $ret;
+            $arr['is_lcomment'] = $is_lcomment;
+            $arr['forbidden_flag'] = 1;
+            $arr['uid'] = $uid;
+            $arr['nickname'] = $user['nickname'];
+            $arr['time'] = friendly_date(NOW_TIME, 'mohu');
+            if (CLIENT_NAME == 'yqm') {
+                $arr['time'] = date('Y-m-d', NOW_TIME);
+                $arr['long'] = $is_lcomment;
+                $arr['uid'] = $uid;
+            }
+            $arr['content'] = $content;
+            $arr['bid'] = $bid;
+            $arr['zan_amount'] = 0;
+            $arr['reply_amount'] = 0;
+            if (isInWechat()) {
+                $sucurl = url("Guestbook/index", array("bid" => $bid, 'rand' => randomstr(8)), 'do');
+            } else {
+                $sucurl = url("Guestbook/index", array("bid" => $bid), 'do');
+            }
+            $output['status'] = 1;
+            $output['list'][] = $arr;
+            $output['message'] = '评论成功';
+            $output['url'] = $sucurl;
+            $this->ajaxReturn($output);
+        } else {
+            $output['message'] = C('MESSAGES.commentfail.msg');
+            $this->ajaxReturn($output);
+        }
+    }
+
+    /**
+     * 点赞(暂未使用)
+     *
+     * @param int $uid 用户id session
+     * @param int $commentid 书评id get
+     *
+     * @return string 成功/失败信息
+     */
+    public function sendZanAction() {
+        $this->check_user_login();
+        $uid = isLogin();
+        $output = array('status' => 0, 'message' => '', "url" => "");
+        if (!$uid) {
+            $output['message'] = '请先登录';
+            $this->ajaxReturn($output);
+        }
+        $commentid = I("get.comment_id", 0, 'intval');
+        if (!$commentid) {
+            $output['message'] = "参数错误";
+            $this->ajaxReturn($output);
+        }
+        //点亮记录
+        if (CLIENT_NAME == 'yqm') {
+            $cacheModel = new \HS\MemcacheRedis();
+            $key = 'Zanlog#' . $uid . "#" . $commentid;
+            $lastZanTime = $cacheModel->get($key);
+            if ($lastZanTime) {
+                $output['status'] = 2;
+                $output['message'] = '点亮过于频繁，请稍后再试';
+                $this->ajaxReturn($output);
+            }
+        }
+
+        $commentmodel = new \Client\Model\NewcommentModel();
+        //TODO:原站的点赞分为评论和回复两种，具体可见原站的comment.php的poohand,PC端只有书评点赞
+        $ret = $commentmodel->addZan($commentid);
+        if ($ret == 'zansuc') {
+            if (CLIENT_NAME == 'yqm') {
+                $cacheModel->setMc($key, NOW_TIME, C('ZANTIME'));
+            }
+
+            $where = array('comment_id' => $commentid);
+            $output['zan_amount'] = $commentmodel->where($where)->getField('zan_amount');
+            unset($commentmodel);
+            $output['status'] = 1;
+            $output['message'] = '点赞成功';
+        } else {
+            $output['message'] = '点赞失败';
+        }
+        $this->ajaxReturn($output);
+    }
+
+    /**
+     * 书评
+     *
+     * @param int $bid 书籍id get
+     * @param string maction 判断请求方式(getcommentlist,ajax请求)
+     * @param int $totalnum 总记录条数 get(ajax)
+     * @param int $pagenum 当前页码 get(ajax)
+     * @param int $total_page 总页码 get(ajax)
+     *
+     * @return array
+     */
+    public function getCommentsAction() {
+        $ajaxreturn = array("status" => 0, "message" => "", "url" => "");
+        $bid = I("get.bid", 0, "intval");
+        /* 当前页码 */
+        $pagenum = I(C('VAR_PAGE'), 1, 'intval');
+        /* 总的记录条数 */
+        $totalnum = I("get.totalnum", 0, "intval");
+        $ajaxreturn = array('status' => 0, 'list' => '', 'pagenum' => $pagenum, 'nextpagenum' => $pagenum + 1, 'totalnum' => $totalnum, 'totalpage' => 0);
+        if (!$bid) {
+            $ajaxreturn['message'] = '无法确认书籍';
+            $this->ajaxReturn($ajaxreturn);
+            //$this->error('无法确认书籍', '', $ajaxreturn);
+        }
+        //未登录查询条件
+        $where = array(
+            'n.bid'          => $bid,
+            'n.deleted_flag' => array('neq', 1),
+            'n.content'      => array('neq', ''),
+        );
+        //登录的查询条件
+        $this->check_user_login();
+        $uid = isLogin();
+        if ($uid) {
+            unset($where);
+            $where = array(
+                'n.bid'          => $bid,
+                'n.deleted_flag' => array('neq', 1),
+                'n.content'      => array('neq', ''),
+                array(
+                    'n.forbidden_flag' => array('neq', 1),
+                    'n.uid'            => $uid,
+                    '_logic'           => 'OR',
+                ),
+            );
+        }
+        $comModel = new \Client\Model\NewcommentModel();
+        if (!$totalnum) {
+            //获取书评缓存设置-评论总数
+            $commentcache = $comModel->get_comment_set_cache($bid);
+            //如果缓存设置不存在，则从数据库查询设置
+            if (intval($commentcache['totalnum']) < 1) {
+                $map = array("bid" => $bid);
+                $totalnum = M('newcomment')->where($map)->count();
+            } else {
+                $totalnum = $commentcache['totalnum'];
+            }
+        }
+        if (!$totalnum) {
+            $ajaxreturn['message'] = '暂无评论';
+            $this->ajaxReturn($ajaxreturn);
+        }
+        /* 每页显示的书评数 */
+        $maxnum = I('get.pagesize', C('COMMENTSIZE'), 'intval');
+        $pageModel = new \HS\Pager($totalnum, $maxnum);
+        $pagelist = $pageModel->show();
+        /**
+         * 从数据库获取书评-wis_newcomment
+         * $where bid =$bid
+         * 排序条件order by doublesort DESC,last_reply_date DESC
+         */
+		$sort = I('sort', 'hot', 'trim');
+		if($sort=='time') {
+			$sort = 'n.comment_id DESC';
+		} else {
+			$sort = 'n.zan_amount DESC, n.comment_id DESC';
+		}
+					
+        $res = M('newcomment')->alias('n')->join('__READ_USER__ as u ON n.uid = u.uid', 'LEFT')->
+                field('u.username as uname,u.nickname as unick,n.comment_id,n.title,n.last_reply_date,n.creation_date,n.content,n.uid,n.zan_amount,n.reply_amount,n.bid, n.forbidden_flag')->
+                where($where)->order($sort)->
+                limit($pageModel->firstRow, $pageModel->listRows)->select();
+        $comments = array();
+        $lou_count = 1;
+        foreach ($res as $cokey => $coval) {
+            //用户头像
+            $coval['avatar'] = '';
+            if ((int) $coval['uid']) {
+                $avatar = getUserFaceUrl($coval['uid']);
+            }
+            $coval['avatar'] = $avatar;
+            //格式化时间
+            $coval['sendtime'] = date("Y-m-d H:i:s", $coval['last_reply_date']);
+            //补充用户信息
+            $coval['username'] = $coval['uname'];
+            $coval['nickname'] = $coval['unick'] ? $coval['unick'] : $coval['uname'];
+            $coval['time'] = friendly_date($coval['creation_date'], 'mohu');
+            $coval['content'] = $coval['content'];
+            $coval['lou'] = ($pagenum - 1) * $maxnum + $lou_count;
+            $lou_count++;
+            $comments[] = $coval;
+        }
+
+        if ($comments) {
+            $ajaxreturn['status'] = 1;
+            $ajaxreturn['list'] = $comments;
+            $ajaxreturn['pagenum'] = $pageModel->nowPage;
+            $ajaxreturn['nextpagenum'] = $pageModel->nowPage + 1;
+            $ajaxreturn['totalnum'] = $totalnum;
+            $ajaxreturn['totalpage'] = $pageModel->totalPages;
+        } else {
+            //$ajaxreturn['message'] = '没有书评';
+        }
+
+        $this->ajaxReturn($ajaxreturn);
+    }
+
+}

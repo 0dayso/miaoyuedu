@@ -1,0 +1,194 @@
+<extend name="Common/base" />
+<block name="header">
+    <include file="Common/head1" />
+</block>
+<block name="body">
+    <div class="container  clearfix">
+    <div class="crumbs"><a href="{:url('Index/index','','html')}">首页</a>><a href="{:url('Book/view',array('bid'=>$bookinfo['bid']),'html')}">{$bookinfo.catename}</a>><span>全部评论</span></div>
+    <div class="col-3">
+        <div class="comments bgf clearfix">
+            <div class="tit allcoment_tit"><a href="javascript:void(0);" type="1" name="com" class="titbg2 active">最新评论</a><a href="javascript:void(0);" type="2" name="com" class="titbg2">精华({$bookinfo['elitecommentnum']})</a><a href="javascript:void(0);" type="3" name="com" class="titbg2">章节评({$bookinfo['chpcommentnum']})</a><a href="#mycomment" class="iwantcommnent"><span>我要评论</span><span class="ic_pen"></span></a></div>
+            <div class="comments_con">
+                <ul id="comments">
+                    
+                </ul>
+
+            </div>
+            <div class="page commnnt_pages" id="pagelist">
+                
+            </div>
+            <div class="mycomment bgf clearfix" id="mycomment" >
+                <div class="mycomment_tit"><h4>我来评论这本书</h4><a href="{:url('User/login','','do')}" name="nologin">登录&nbsp;&nbsp;或</a><a href="{:url('User/register','','do')}" name="nologin">注册</a></div>
+                <div class="mycomment_con">
+                    <div class="lf"><a href="javascript:void(0);" target="_blank" class="comment_avater"><img src="__IMG__/avatar/avater_small.jpg" /></a></div>
+                    <div class="rt">
+                        <textarea id="textall" class="ask_con_textarea radius4" placeholder="回复"></textarea>
+                        <div class="ask_con_other">
+                            <a href="javascript:void(0);" id="bq" class="face"><img src="__IMG__/face/1.gif"></a><span class="ask_con_num"><span id="num">0</span>/<span id="totalnum">300</span></span>
+                            <div class="changping"> <input name="changping" type="checkbox"/> 我要写长评(可以发表1,000字，更容易获得精华推荐)</div>
+                            <div class="mtop10"><button class="ask_btn radius4 " id="tijiao">发表评论</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-1 clearfix">
+        <div class="rank mbom10">
+            <div class="fmtag">
+                <a href="{:url('Book/view',array('bid'=>$bookinfo['bid']),'html')}" ><img  src="{$bookinfo.cover}"  /></a>
+                <p>作品标签：<span>{$bookinfo.tags}</span></p>
+            </div>
+        </div>
+        <div class="rank mbom10 ">
+            <div class="rank_tit2">作者公告</div>
+            <div class="rank_authorgonggao clearfix">
+                <p>{$bookinfo['note']}</p>
+            </div>
+        </div>
+
+    </div>
+    </div>
+    <div id="bqb" style="display:none;position:absolute;"><include file="tpl/bqb"/></div>
+</block>
+<block name="script">
+    <include file="tpl/commenttpl" />
+    <include file="tpl/replytpl" /> 
+    <script type="text/javascript">
+        var bid = "{$bookinfo.bid}";
+        var _type=1;
+        function getcomments(pagenum,type){
+            if(!pagenum){
+                var pagenum=1;
+            }
+            if(!type){
+                var type = _type;
+            }else{
+                _type = type;
+            }
+            var url = "{:url('Bookajax/getcomments','','do')}";
+            require(['api','template','mod/page','functions'],function(api,template,page){
+                api.getapi(url,{bid:bid,pagesize:10,type:type,pagenum:pagenum},function(data){
+                    if(data.status==1){
+                        for(var i in data.list){
+                            data.list[i].link=parseUrl({bid:bid,comment_id:data.list[i]['comment_id']},'Book/replyComment','do');
+                        }
+                        var html1=template('comment_tpl',data);
+                        $('#comments').html(html1);
+                        clickevents();
+                        page.changepage('getcomments',data.pagenum,data.pageliststart,data.totalpage,'#pagelist');
+                    }else{
+                        hg_Toast(data.message);
+                        $('#comments').html('');
+                        $('#pagelist').html('');
+                    }
+                })
+            })
+            
+        }
+
+        function clickevents(){
+            var Commentlist=$('#comments').find('.empty');
+            $.each(Commentlist,function(){
+                var cid=$(this).attr('cid');
+                //绑定回复按钮事件
+                $(this).on('click','#r'+cid,function(){
+                    getreply(cid);
+                    require(['mod/comment'],function(com){
+                        com.showhide(this,'#ro'+cid,'isshow');
+                    })
+                });
+                //绑定点赞事件
+                $(this).on('click','#z'+cid,function(){
+                    require(['mod/book'],function(book){
+                        book.sendzan(bid,cid,'#za'+cid);
+                    })
+                });
+                //绑定弹出回复框
+                $(this).on('click','#tk'+cid,function(){
+                    require(['mod/comment'],function(com){
+                        com.showhide(this,'#k'+cid,'isshow');
+                    })
+                });
+                //绑定弹出表情包
+                $(this).on('click','#bq'+cid,function(e){
+                    require(['mod/comment'],function(com){
+                        com.showhidebqb('#bqb','isshow',e,cid);
+                    })
+                })
+                //绑定检测字数
+                $(this).on('keydown','#text'+cid,function(){
+                    require(['mod/comment'],function(com){
+                        com.checknum('#text'+cid,'#num'+cid);
+                    })
+                })
+
+               //绑定提交回复
+                $(this).on('click','#send'+cid,function(){
+                    var length=$('#text'+cid).val().length;
+                    require(['api','template','mod/comment','functions'],function(api,template,com){
+                        if(length>300 ||length<4){
+                            hg_Toast('回复内容字数要在4-300之间');
+                            return;
+                        }
+                        var content = $('#text'+cid).val();
+                        com.addreply(bid,cid,content,'reply_tpl','#rbox'+cid,'#za'+cid,'#text'+cid);
+                    })
+                })
+            });
+        }
+
+        function getreply(cid,pagenum){
+            if(!pagenum){
+                var pagenum = 1;
+            }
+            var url = "{:url('Bookajax/replyComment','','do')}";
+            require(['api','template','functions'],function(api,template){
+                api.getapi(url,{bid:bid,pagesize:5,comment_id:cid,pagenum:pagenum},function(data){
+                    if(data.status==1){
+                       var html2=template('reply_tpl',data);
+                       $('#rbox'+cid).html(html2);
+                    }
+                })
+            })
+            
+        }
+
+        $('a[name="com"]').on('click',function(){
+            $('a[name="com"]').removeClass('active');
+            $(this).addClass('active');
+            var type = $(this).attr('type');
+            getcomments(1,type);
+        })
+        $('input[name="changping"]').on('click',function(){
+            var check = $('input[name="changping"]:checked').val();
+            if(check){
+                $('#totalnum').html('1000');
+            }else{
+                $('#totalnum').html('300');
+            }
+        })
+        $('#tijiao').on('click',function(){
+            var length = $('#text').val().length;
+            var totalnum = parseInt($('#totalnum').html());
+            require(['functions','mod/comment'],function(func,com){
+                if(length<4 || length>totalnum){
+                    hg_Toast('评论字数不符合要求');
+                    return;
+                }
+                var content = $('#text').val();
+                com.addcomment(bid,content,'comment_tpl','#comments','#empty','#text');
+            })
+        })
+        require(['mod/comment'],function(com){
+            $('#textall').on('keydown',function(){
+                com.checknum('#textall','#num');
+            });
+            $('#bq').on('click',function(e){
+                com.showhidebqb('#bqb','isshow',e,'all');
+            })
+        })
+        getcomments(1,1);
+    </script>
+</block>

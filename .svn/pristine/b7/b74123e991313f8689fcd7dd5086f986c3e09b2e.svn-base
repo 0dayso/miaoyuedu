@@ -1,0 +1,91 @@
+<extend name="Common/base" />
+<block name="header">
+    <include file="Common/head1" />
+</block>
+<block name="body">
+    <div class="container mtop10 clearfix">
+        <div class="crumbs crumbs2"><span href="javascript:void(0);">您的位置</span>><a href="{:url('Index/index','','html')}">首页</a>><span>帮助</span></div>
+        <div class="news">
+            <include file="tpl/newslist" />
+            <div class="rt problem">
+                <div class="news_tit"><h2>帮助中心</h2></div>
+                <div class="frame02 newsrt_con">
+                    <h5>读者常见问题TOP10</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="readtopfaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>最新问题</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="readnewfaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>{:C("SITECONFIG.SITE_NAME")}社区规则</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="bbsrule" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>网页版问题</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="webfaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>手机端问题</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="mobilefaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>其他疑难杂症</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="rarefaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>作者常见问题TOP10</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="authortopfaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>作者最新问题</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="authornewfaq" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+                    <h5>作者权益和福利</h5>
+                    <div class="cz_ts">
+                        <ul>
+                            <volist name="authorwelfare" id="vo">
+                                <li> <p><a href="{:url('Help/article',array('article_id'=>$vo['article_id']))}" target="_blank" class="ellipsis">.{$vo.title}</a></p></li>
+                            </volist>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</block>

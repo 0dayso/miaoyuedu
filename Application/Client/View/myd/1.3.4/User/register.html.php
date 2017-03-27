@@ -1,0 +1,63 @@
+<extend name="Common/base" />
+<block name="header">
+    <div class="header nobg clearfix">
+        <div class="container ">
+            <div class="logo"><a href="{:url('Index/index')}"><img src="__IMG__/logo.png" /></a></div>
+            <div class="topnav">
+                <a href="{:url('Channel/fuli','','html')}"><img src="__IMG__/ic_topnav_fuli.png"  />福利</a>
+                <a href="javascript:void(0);"><img src="__IMG__/ic_topnav_phone.png"  />喵手机</a>
+                <a href="{:url('Pay/index','','do')}"><img src="__IMG__/ic_topnav_chongzhi.png"  />充值</a>
+                <a href="{:url('User/login','','do')}" name="nologin" class="tx"><img src="__IMG__/ic_topnav_tx.png" /></a>
+                <a href="{:url('User/login','','do')}" name="nologin" class="user">登录</a>
+                <a href="{:url('User/index','','do')}" name="islogin" class="tx on"><img src="__IMG__/ic_topnav_tx.png" id="useravatar" /></a>
+            </div>
+        </div>
+    </div>
+</block>
+<block name="body">
+    <div class="container">
+        <div class="login registertop clearfix">
+            <div class="password registertit">
+                <div class="tit5"><div class="tit5_border"><h1>欢迎您注册{:C("SITECONFIG.SITE_NAME")}</h1></div></div>
+            </div>
+            <div class="lf register">
+                <p>不用注册，您可以直接用微信号<!-- ,QQ号，新浪微博号 -->登录。放心，我们不会记住您的这些账号密码</p>
+                <div class="frame03 other_login">
+                    <ul>
+                        <li><a href="{:url('Usercenter/Third/wechatlogin')}" class="radius4 weixin" class="radius4 weixin" ></a><span>微信</span></li>
+                        <!-- <li><a href="__USERDOMAIN__/third/qq/login.html" class="radius4 qq"></a><span>QQ</span></li>
+                        <li><a href="__USERDOMAIN__/third/sina/login.html" class="radius4 weibo"></a><span>新浪微博</span></li> -->
+                    </ul>
+                </div>
+                <div class="login_con">
+                        <h5>使用{:C("SITECONFIG.SITE_NAME")}账号登陆：<span class="registerwd">已有{:C("SITECONFIG.SITE_NAME")}账号？<a href="{:url('User/login','','do')}" class="cblue" >登录</a></span></h5>
+                        <div class="form_item"><input name="user" type="text" placeholder="账号名" class="radius4" /><p class="zs"><span class="cred">*</span>长度为2到15位的英文，数字</p></div>
+                        <p class="wrong" name="user" style="display:none;"></p>
+                        <div class="form_item"><input name="phone" type="text" placeholder="注册手机号或电子邮箱" class="radius4"><p class="zs"><span class="cred">*</span>手机号或电子邮箱</p></div>
+                        <div class="form_item"><input name="pwd" type="password" placeholder="密码(不少于6位)" class="radius4" /><a href="javascript:void(0);" isshow="0" id="eye" class="eye"></a><p class="zs"><span class="cred">*</span>6-15个大小写英文字母、数字,符号</p></div>
+                        <p class="wrong" name="pwd" style="display:none;"></p>
+                        <div class="form_item"><a href="javascript:void(0);" class="img_ewm"><img id="imgcode" src="{:url('User/imgcode','','do')}" /></a><input name="yzm" type="text" placeholder="请输入验证码" class="ewm radius4" /></div>
+                        <p class="wrong" name="yzm" style="display:none;"></p>
+                        <div class="form_item2"><button class="mainbtn radius4" id="zhuce">免费注册</button></div>
+                        <p>点击注册即表明你同意<a href="{:url('Help/abouthelp',array('article_id'=>'yhxy'),'html')}" target="_blank"  class="cblue">{:C("SITECONFIG.SITE_NAME")}服务条款</a></p>
+                </div>
+            </div>
+            <div class="rt registerrt"><p>还不是{:C("SITECONFIG.SITE_NAME")}作者？</p><a href="{:url('User/authorreg','','do')}" class="radius4">注册成作者</a></div>
+        </div>
+    </div>
+</block>
+<block name="script">
+    <script type="text/javascript">
+        require(['mod/user'],function(user){
+            $('#imgcode').on('click',function(){
+                user.refreshimg('#imgcode');
+            })
+            $('#eye').on('click',function(){
+                user.showhidepwd('pwd','#eye','isshow');
+            })
+            $('#zhuce').on('click',function(){
+                user.register('user','pwd','yzm','phone');
+            })
+        })
+    </script>
+</block> 
